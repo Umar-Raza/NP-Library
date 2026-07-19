@@ -1,26 +1,32 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@plugin "daisyui" {
+  themes: false;
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@plugin "daisyui/theme" {
+  name: "nplibrary";
+  default: true;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #f5f6f3;
+  --color-base-300: #e6e8e2;
+  --color-base-content: #14231f;
+  --color-primary: #b8d93c;
+  --color-primary-content: #14231f;
+  --color-secondary: #0e2a29;
+  --color-secondary-content: #ffffff;
+  --color-accent: #b8d93c;
+  --color-accent-content: #14231f;
+  --color-neutral: #0e2a29;
+  --color-neutral-content: #ffffff;
+  --color-info: #7ec4e8;
+  --color-success: #6fc9a8;
+  --color-warning: #f5c662;
+  --color-error: #e88585;
+  --radius-box: 0.75rem;
+  --radius-field: 0.5rem;
+  --radius-selector: 0.5rem;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme {
+  --font-display: var(--font-display), serif;
+  --font-sans: var(--font-body), sans-serif;
 }
