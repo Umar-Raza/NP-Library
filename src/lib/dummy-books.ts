@@ -21,8 +21,8 @@ export const dummyBooks: Book[] = [
     authorName: "Ibn Kaseer",
     subject: "Tafseer",
     maktaba: "Maktaba Ashrafia",
+    bookLink: "https://example.com/book1.pdf",
     libraryCode: "TF-014",
-    bookLink: "",
     status: "borrowed",
     borrowedBy: "Bilal Hussain",
     borrowChain: [
