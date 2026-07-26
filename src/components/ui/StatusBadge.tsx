@@ -15,5 +15,5 @@ export default function StatusBadge({
       </span>
     );
   }
-  return <span className="badge badge-warning">{borrowedBy}</span>;
+  return <span className="badge badge-warning px-1.5 py-1">{borrowedBy}</span>;
 }

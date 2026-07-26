@@ -143,7 +143,7 @@ export default function LibrarianDashboardPage() {
                           </p>
                         </div>
                       </div>
-                      <span className="badge badge-warning badge-sm shrink-0">
+                      <span className="badge badge-warning px-1.5 py-1 badge-sm shrink-0">
                         {book.borrowedBy}
                       </span>
                     </div>
@@ -152,55 +152,6 @@ export default function LibrarianDashboardPage() {
               )}
             </div>
           </div>
-
-          {/* Readers List */}
-          {/* <div className="card bg-base-100 border border-base-300 shadow-sm">
-            <div className="card-body">
-              <h2 className="font-display text-lg font-semibold mb-4">
-                Readers
-              </h2>
-
-              <div className="flex flex-col gap-3">
-                {recentReaders.map((reader) => (
-                  <div
-                    key={reader.id}
-                    className="flex items-center justify-between border-b border-base-300 last:border-0 pb-3 last:pb-0"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="avatar placeholder">
-                        <div className="bg-secondary text-secondary-content rounded-full w-9">
-                          <span className="text-xs font-medium">
-                            {reader.fullName[0]?.toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {reader.fullName}
-                        </p>
-                        <p className="text-xs text-base-content/50 truncate">
-                          {reader.email}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span
-                        className={`badge badge-sm ${reader.status === "approved" ? "badge-success badge-outline" : "badge-warning"}`}
-                      >
-                        {reader.status === "approved" ? "Approved" : "Pending"}
-                      </span>
-                      <p className="text-xs text-base-content/40 mt-1">
-                        {new Date(reader.registeredAt).toLocaleDateString(
-                          "en-GB",
-                          { day: "2-digit", month: "short", year: "numeric" },
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div> */}
         </div>
 
         {/* Right: side panel (1/3) — Pending Requests preview */}
@@ -237,10 +188,10 @@ export default function LibrarianDashboardPage() {
                         {reader.email}
                       </p>
                       <div className="flex items-center gap-2">
-                        <button className="btn btn-primary btn-xs flex-1">
+                        <button className="btn btn-primary btn-sm flex-1">
                           Approve
                         </button>
-                        <button className="btn btn-ghost btn-xs flex-1 border border-base-300">
+                        <button className="btn btn-ghost btn-sm flex-1 border border-base-300">
                           Reject
                         </button>
                       </div>

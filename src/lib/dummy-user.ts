@@ -15,3 +15,12 @@ export const dummyUser: UserProfile = {
   status: "approved",
   joinedAt: "2026-06-15",
 };
+
+export const dummyLibrarian: UserProfile = {
+  id: "10",
+  fullName: "Umar Librarian",
+  email: "librarian@nplibrary.com",
+  role: "librarian",
+  status: "approved",
+  joinedAt: "2026-01-10",
+};
