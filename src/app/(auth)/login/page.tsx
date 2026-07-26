@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <div className="card bg-base-100 shadow-xl">
       <div className="card-body">
-        <div className="flex flex-col items-center gap-2 mb-4">
+        <div className="flex flex-col items-center gap-2 mb-2">
           <BookOpen className="text-primary" size={32} />
           <h1 className="font-display text-2xl font-semibold">NP Library</h1>
           <p className="text-base-content/60 text-sm">
