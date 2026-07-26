@@ -4,12 +4,14 @@ import { BookOpen, User } from "lucide-react";
 export default function IssuedBookRow({
   book,
   index,
+  actions,
 }: {
   book: Book;
   index: number;
+  actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-4 bg-base-100 border border-base-300 rounded-box px-4 py-3.5 hover:shadow-sm transition-shadow">
+    <div className="flex items-center gap-4 bg-base-100 border border-base-300 rounded-box px-4 py-3.5 hover:shadow-sm transition-shadow flex-wrap sm:flex-nowrap">
       <span className="w-6 text-center text-sm font-mono font-medium text-base-content/40 shrink-0">
         {index}
       </span>
@@ -50,6 +52,9 @@ export default function IssuedBookRow({
           </p>
         </div>
       </div>
+
+      {/* Return action (librarian only) */}
+      {actions && <div className="shrink-0">{actions}</div>}
     </div>
   );
 }

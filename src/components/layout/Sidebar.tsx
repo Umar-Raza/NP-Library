@@ -20,6 +20,7 @@ const librarianLinks = [
     icon: ClipboardList,
   },
   { href: "/librarian/requests", label: "Requests", icon: Users },
+  { href: "/librarian/books-logs", label: "Books Logs", icon: ClipboardList },
 ];
 
 const readerLinks = [

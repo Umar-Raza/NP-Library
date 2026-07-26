@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "src/app/librarian/books-logs"  ],
   "exclude": ["node_modules"]
 }

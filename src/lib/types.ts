@@ -14,4 +14,10 @@ export interface Book {
   status: BookStatus;
   borrowedBy?: string;
   addedAt: string; // ISO date, sorting ke liye
+  borrowChain?: BorrowChainEntry[]; // hand-to-hand transfer history
+}
+
+export interface BorrowChainEntry {
+  readerName: string;
+  timestamp: string;
 }

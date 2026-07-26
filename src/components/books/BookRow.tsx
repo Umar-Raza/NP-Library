@@ -6,9 +6,13 @@ export default function BookRow({
   book,
   index,
   actions,
+  showDownload = true,
+  showAvailableStatus = false,
 }: {
   book: Book;
   index: number;
+  showDownload?: boolean;
+  showAvailableStatus?: boolean;
   actions?: React.ReactNode;
 }) {
   return (
@@ -79,10 +83,13 @@ export default function BookRow({
 
         {/* Status & Actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 lg:w-[220px] shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-base-200 w-full max-w-full min-w-0 overflow-hidden">
-          <StatusBadge status={book.status} borrowedBy={book.borrowedBy} />
-
+          <StatusBadge
+            status={book.status}
+            borrowedBy={book.borrowedBy}
+            showAvailable={showAvailableStatus}
+          />
           <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-start sm:justify-end flex-wrap">
-            {book.bookLink && (
+            {book.bookLink && showDownload && (
               <a
                 href={book.bookLink}
                 target="_blank"

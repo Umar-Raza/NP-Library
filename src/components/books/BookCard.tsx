@@ -6,9 +6,13 @@ export default function BookCard({
   book,
   index,
   actions,
+  showDownload = true,
+  showAvailableStatus = false,
 }: {
   book: Book;
   index: number;
+  showDownload?: boolean;
+  showAvailableStatus?: boolean;
   actions?: React.ReactNode;
 }) {
   return (
@@ -64,19 +68,25 @@ export default function BookCard({
           </div>
 
           {/* Download & Custom Actions */}
-          <div className="flex flex-wrap items-center gap-2 mt-auto pt-4">
-            {book.bookLink && (
-              <a
-                href={book.bookLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-ghost btn-sm border border-base-300 hover:border-primary hover:text-primary transition-colors"
-                title="Download Book"
-              >
-                <Download size={14} />
-              </a>
-            )}
-            {actions}
+          <div className="flex items-center justify-between gap-2 mt-auto pt-3">
+            <StatusBadge
+              status={book.status}
+              borrowedBy={book.borrowedBy}
+              showAvailable={showAvailableStatus}
+            />
+            <div className="flex items-center gap-2">
+              {book.bookLink && showDownload && (
+                <a
+                  href={book.bookLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-ghost btn-sm border border-base-300"
+                >
+                  <Download size={14} />
+                </a>
+              )}
+              {actions}
+            </div>
           </div>
         </div>
 
@@ -92,10 +102,6 @@ export default function BookCard({
             <BookOpen size={22} className="text-base-content/30" />
           )}
         </div>
-      </div>
-
-      <div className="px-4 pb-4 pt-1 border-t border-base-200/60">
-        <StatusBadge status={book.status} borrowedBy={book.borrowedBy} />
       </div>
     </div>
   );
