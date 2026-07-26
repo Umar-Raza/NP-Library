@@ -75,7 +75,7 @@ export default function RequestsPage() {
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="avatar placeholder">
                     <div className="bg-secondary text-secondary-content rounded-full w-10">
-                      <span className="text-sm font-medium">
+                      <span className="text-sm font-medium flex items-center justify-center w-full h-full">
                         {reader.fullName[0]?.toUpperCase()}
                       </span>
                     </div>
@@ -136,9 +136,9 @@ export default function RequestsPage() {
                 className="flex items-center justify-between gap-3 bg-base-100 border border-base-300 rounded-box px-4 py-3.5"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="avatar placeholder">
+                  <div className="avatar">
                     <div className="bg-secondary text-secondary-content rounded-full w-10">
-                      <span className="text-sm font-medium">
+                      <span className="text-sm font-medium flex items-center justify-center w-full h-full">
                         {reader.fullName[0]?.toUpperCase()}
                       </span>
                     </div>

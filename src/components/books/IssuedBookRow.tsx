@@ -38,9 +38,9 @@ export default function IssuedBookRow({
 
       {/* Borrower Name — right */}
       <div className="flex items-center gap-2 shrink-0">
-        <div className="avatar placeholder">
+        <div className="avatar">
           <div className="bg-secondary text-secondary-content rounded-full w-8">
-            <span className="text-xs font-medium">
+            <span className="text-xs font-medium flex items-center justify-center w-full h-full">
               {book.borrowedBy?.[0]?.toUpperCase() || "?"}
             </span>
           </div>

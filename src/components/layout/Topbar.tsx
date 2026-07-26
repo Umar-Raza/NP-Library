@@ -36,9 +36,9 @@ export default function Topbar({
             role="button"
             className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded-field hover:bg-base-200"
           >
-            <div className="avatar placeholder">
+            <div className="avatar">
               <div className="bg-primary text-primary-content rounded-full w-9">
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium flex items-center justify-center w-full h-full">
                   {userName?.[0]?.toUpperCase() || "U"}
                 </span>
               </div>
