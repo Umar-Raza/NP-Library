@@ -1,0 +1,40 @@
+import { Book } from "./types";
+
+export const dummyBooks: Book[] = [
+  {
+    id: "1",
+    titlePage: "",
+    bookName: "Sahih Bukhari Jild 1",
+    authorName: "Imam Bukhari",
+    subject: "Hadith",
+    maktaba: "Maktaba Rehmania",
+    libraryCode: "HD-001",
+    bookLink: "https://example.com/book1.pdf",
+    status: "available",
+    addedAt: "2026-07-10",
+  },
+  {
+    id: "1",
+    titlePage: "",
+    bookName: "Tafseer Ibn Kaseer",
+    authorName: "Tafseer Ibn Kaseer",
+    subject: "Tafseer",
+    maktaba: "Maktaba Rehmania",
+    libraryCode: "HD-001",
+    bookLink: "https://example.com/book1.pdf",
+    status: "available",
+    addedAt: "2026-07-10",
+  },
+  {
+    id: "3",
+    titlePage: "",
+    bookName: "Fiqh ul Islam",
+    authorName: "Molana Ashraf",
+    subject: "Fiqh",
+    maktaba: "Maktaba Rehmania",
+    libraryCode: "HD-001",
+    bookLink: "https://example.com/book1.pdf",
+    status: "available",
+    addedAt: "2026-06-20",
+  },
+];
