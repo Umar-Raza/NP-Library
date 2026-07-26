@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, User, LogOut, ChevronDown, Menu } from "lucide-react";
+import NotificationPanel from "./NotificationPanel";
 
 export default function Topbar({
   userName,
@@ -26,10 +27,7 @@ export default function Topbar({
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">
-        <button className="btn btn-ghost btn-circle btn-sm relative">
-          <Bell size={20} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
-        </button>
+        <NotificationPanel />
 
         <div className="dropdown dropdown-end">
           <div
