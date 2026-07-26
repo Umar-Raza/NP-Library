@@ -1,5 +1,7 @@
 // import Image from "next/image";
 
+import Link from "next/link";
+
 export default function Home() {
   return (
     <div className="hero min-h-screen bg-base-200">
@@ -10,7 +12,18 @@ export default function Home() {
             Welcome to the future of library management. Seamless, efficient,
             and designed for the modern reader.
           </p>
-          <button className="btn btn-primary border-0 mt-5">Get Started</button>
+          <div className="flex gap-5 justify-center">
+            <Link href="/reader/dashboard">
+              <button className="btn btn-primary border-0 mt-5">
+                Reader Login
+              </button>
+            </Link>
+            <Link href="/librarian/dashboard">
+              <button className="btn btn-primary border-0 mt-5">
+                Librarian Login
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
