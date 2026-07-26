@@ -2,6 +2,7 @@
 
 import { Bell, User, LogOut, ChevronDown, Menu } from "lucide-react";
 import NotificationPanel from "./NotificationPanel";
+import Link from "next/link";
 
 export default function Topbar({
   userName,
@@ -56,9 +57,16 @@ export default function Topbar({
             className="dropdown-content menu bg-base-100 rounded-box shadow-lg border border-base-300 w-48 mt-2 p-2 z-20"
           >
             <li>
-              <a className="flex items-center gap-2">
+              <Link
+                href={
+                  role === "librarian"
+                    ? "/librarian/profile"
+                    : "/reader/profile"
+                }
+                className="flex items-center gap-2"
+              >
                 <User size={16} /> Profile
-              </a>
+              </Link>
             </li>
             <li>
               <a className="flex items-center gap-2 text-error">
