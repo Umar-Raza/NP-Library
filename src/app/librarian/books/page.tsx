@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+// import { Plus, Pencil, Trash2, UserPlus, RotateCcw } from "lucide-react";
+import AssignModal from "@/components/books/AssignModal";
 import SearchFilterBar from "@/components/books/SearchFilterBar";
 import BookCard from "@/components/books/BookCard";
 import BookRow from "@/components/books/BookRow";
 import BookFormModal from "@/components/books/BookFormModal";
 import { dummyBooks } from "@/lib/dummy-books";
 import { Book, ViewMode, SortOption } from "@/lib/types";
-
+import { Plus, UserPlus, RotateCcw } from "lucide-react";
+import AdminMenu from "@/components/books/AdminMenu";
 export default function LibrarianBooksPage() {
   const [books, setBooks] = useState<Book[]>(dummyBooks);
   const [search, setSearch] = useState("");
@@ -17,6 +19,44 @@ export default function LibrarianBooksPage() {
   const [view, setView] = useState<ViewMode>("grid");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [assignBook, setAssignBook] = useState<Book | null>(null);
+
+  const handleAssign = (borrowerName: string) => {
+    if (!assignBook) return;
+    setBooks((prev) =>
+      prev.map((b) =>
+        b.id === assignBook.id
+          ? {
+              ...b,
+              status: "borrowed",
+              borrowedBy: borrowerName,
+              borrowChain: [
+                ...(b.borrowChain || []),
+                {
+                  readerName: borrowerName,
+                  timestamp: new Date().toISOString(),
+                },
+              ],
+            }
+          : b,
+      ),
+    );
+  };
+
+  const handleReturn = (id: string) => {
+    setBooks((prev) =>
+      prev.map((b) =>
+        b.id === id
+          ? {
+              ...b,
+              status: "available",
+              borrowedBy: undefined,
+              borrowChain: [],
+            }
+          : b,
+      ),
+    );
+  };
 
   const subjects = useMemo(
     () => [...new Set(books.map((b) => b.subject))],
@@ -82,18 +122,26 @@ export default function LibrarianBooksPage() {
 
   const renderAdminActions = (book: Book) => (
     <div className="flex items-center gap-1.5">
-      <button
-        className="btn btn-ghost btn-sm btn-square border border-base-300"
-        onClick={() => handleEditClick(book)}
-      >
-        <Pencil size={14} />
-      </button>
-      <button
-        className="btn btn-ghost btn-sm btn-square border border-base-300 text-error"
-        onClick={() => handleDelete(book.id)}
-      >
-        <Trash2 size={14} />
-      </button>
+      {book.status === "available" ? (
+        <button
+          className="btn btn-primary btn-sm gap-1"
+          onClick={() => setAssignBook(book)}
+        >
+          <UserPlus size={14} />
+        </button>
+      ) : (
+        <button
+          className="btn btn-ghost btn-sm gap-1 border border-base-300"
+          onClick={() => handleReturn(book.id)}
+        >
+          <RotateCcw size={14} /> Return
+        </button>
+      )}
+
+      <AdminMenu
+        onEdit={() => handleEditClick(book)}
+        onDelete={() => handleDelete(book.id)}
+      />
     </div>
   );
 
@@ -157,6 +205,12 @@ export default function LibrarianBooksPage() {
         onClose={() => setModalOpen(false)}
         onSave={handleSave}
         initialData={editingBook}
+      />
+      <AssignModal
+        open={!!assignBook}
+        bookName={assignBook?.bookName || ""}
+        onClose={() => setAssignBook(null)}
+        onAssign={handleAssign}
       />
     </div>
   );

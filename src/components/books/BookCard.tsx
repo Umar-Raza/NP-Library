@@ -12,8 +12,8 @@ export default function BookCard({
 }: {
   book: Book;
   index: number;
-  actions?: React.ReactNode; // left side (Borrow — reader)
-  adminActions?: React.ReactNode; // right side (Edit/Delete — librarian)
+  actions?: React.ReactNode; // left (Borrow — reader)
+  adminActions?: React.ReactNode; // right (Assign/Return + kebab — librarian)
   showDownload?: boolean;
   showAvailableStatus?: boolean;
   onToggleFavorite?: (id: string) => void;
@@ -70,10 +70,10 @@ export default function BookCard({
             </div>
           </div>
 
-          {/* Bottom actions row */}
-          <div className="flex items-center justify-between gap-2 mt-auto pt-3">
-            {/* Left: Borrow button OR borrower name OR Available */}
-            <div className="min-w-0">
+          {/* Bottom actions row — flex-wrap so nothing overlaps on mobile */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-auto pt-3">
+            {/* Left: Borrow / borrower name / Available */}
+            <div className="min-w-0 shrink-0">
               {book.status === "borrowed" ? (
                 <span className="badge badge-warning font-medium truncate max-w-full">
                   {book.borrowedBy}

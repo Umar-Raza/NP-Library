@@ -12,13 +12,12 @@ export default function BookRow({
 }: {
   book: Book;
   index: number;
-  actions?: React.ReactNode; // Borrow (reader) — left
-  adminActions?: React.ReactNode; // Edit/Delete (librarian) — right
+  actions?: React.ReactNode;
+  adminActions?: React.ReactNode;
   showDownload?: boolean;
   showAvailableStatus?: boolean;
   onToggleFavorite?: (id: string) => void;
 }) {
-  // Left slot: borrower name / Available / Borrow button
   const leftStatus =
     book.status === "borrowed" ? (
       <span className="badge badge-warning font-medium truncate max-w-full">
@@ -32,7 +31,6 @@ export default function BookRow({
       actions
     );
 
-  // Right slot: star + download + admin actions
   const rightActions = (
     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
       {onToggleFavorite && (
@@ -62,9 +60,9 @@ export default function BookRow({
   );
 
   return (
-    <div className="group bg-base-100 border border-base-200 rounded-2xl hover:shadow-md transition-all duration-300 overflow-hidden w-full max-w-full flex flex-row lg:items-center p-0 lg:p-4 lg:gap-6">
+    <div className="group bg-base-100 border border-base-200 rounded-2xl hover:shadow-md transition-all duration-300 w-full max-w-full flex flex-row lg:items-center p-0 lg:p-4 lg:gap-6">
       {/* Cover Image */}
-      <div className="relative shrink-0 bg-base-200 flex items-center justify-center w-28 sm:w-36 md:w-44 h-auto lg:w-12 lg:h-16 lg:rounded-lg lg:border lg:border-base-300 lg:shadow-sm border-r lg:border-r-0 border-base-200 overflow-hidden">
+      <div className="relative shrink-0 bg-base-200 flex items-center justify-center w-28 sm:w-36 md:w-44 h-auto lg:w-12 lg:h-16 lg:rounded-lg lg:border lg:border-base-300 lg:shadow-sm border-r lg:border-r-0 border-base-200 overflow-hidden rounded-l-2xl lg:rounded-l-lg">
         {book.titlePage ? (
           <img
             src={book.titlePage}
@@ -80,14 +78,13 @@ export default function BookRow({
         </span>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 min-w-0 max-w-full p-3 sm:p-4 md:p-5 lg:p-0 flex flex-col lg:flex-row lg:items-center gap-2.5 sm:gap-4 lg:gap-6 justify-center overflow-hidden">
+      {/* Main Content — NOTE: overflow-hidden hata diya taake kuch clip na ho */}
+      <div className="flex-1 min-w-0 max-w-full p-3 sm:p-4 md:p-5 lg:p-0 flex flex-col lg:flex-row lg:items-center gap-2.5 sm:gap-4 lg:gap-6 justify-center">
         {/* Title & Author */}
-        <div className="flex items-center gap-3 lg:w-[260px] xl:w-[300px] shrink-0 min-w-0 max-w-full">
+        <div className="flex items-center gap-3 lg:w-[240px] xl:w-[280px] shrink-0 min-w-0 max-w-full">
           <span className="hidden lg:block w-6 text-center text-sm font-semibold text-base-content/40 shrink-0 font-mono">
             {String(index).padStart(2, "0")}
           </span>
-
           <div className="flex-1 min-w-0 text-left overflow-hidden">
             <h3 className="font-bold text-base-content text-sm sm:text-base md:text-lg lg:text-base truncate group-hover:text-primary transition-colors block max-w-full">
               {book.bookName}
@@ -126,9 +123,9 @@ export default function BookRow({
           </div>
         </div>
 
-        {/* Status (left) + Actions (right) */}
-        <div className="flex flex-row items-center justify-between gap-2 lg:w-[240px] shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-base-200 w-full max-w-full min-w-0 overflow-hidden">
-          <div className="min-w-0">{leftStatus}</div>
+        {/* Status (left) + Actions (right) — no overflow-hidden, flex-wrap safe */}
+        <div className="flex flex-row flex-wrap items-center justify-between gap-3 sm:gap-4 lg:w-auto lg:min-w-[240px] shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-base-200 w-full max-w-full">
+          <div className="min-w-0 shrink-0">{leftStatus}</div>
           {rightActions}
         </div>
       </div>
