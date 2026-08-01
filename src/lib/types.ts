@@ -15,6 +15,7 @@ export interface Book {
   borrowedBy?: string;
   addedAt: string; // ISO date, sorting ke liye
   borrowChain?: BorrowChainEntry[]; // hand-to-hand transfer history
+  isFavorite?: boolean; // reader ke favorites ke liye
 }
 
 export interface BorrowChainEntry {

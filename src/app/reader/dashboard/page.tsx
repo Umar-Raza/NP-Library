@@ -5,21 +5,28 @@ import SearchFilterBar from "@/components/books/SearchFilterBar";
 import BookCard from "@/components/books/BookCard";
 import BookRow from "@/components/books/BookRow";
 import { dummyBooks } from "@/lib/dummy-books";
-import { ViewMode, SortOption } from "@/lib/types";
+import { Book, ViewMode, SortOption } from "@/lib/types";
 
 export default function ReaderDashboardPage() {
+  const [books, setBooks] = useState<Book[]>(dummyBooks);
   const [search, setSearch] = useState("");
   const [subject, setSubject] = useState("");
   const [sort, setSort] = useState<SortOption>("newest");
   const [view, setView] = useState<ViewMode>("grid");
 
   const subjects = useMemo(
-    () => [...new Set(dummyBooks.map((b) => b.subject))],
-    [],
+    () => [...new Set(books.map((b) => b.subject))],
+    [books],
   );
 
+  const toggleFavorite = (id: string) => {
+    setBooks((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, isFavorite: !b.isFavorite } : b)),
+    );
+  };
+
   const filtered = useMemo(() => {
-    let result = dummyBooks.filter((b) => {
+    let result = books.filter((b) => {
       const matchesSearch =
         b.bookName.toLowerCase().includes(search.toLowerCase()) ||
         b.authorName.toLowerCase().includes(search.toLowerCase()) ||
@@ -39,7 +46,7 @@ export default function ReaderDashboardPage() {
     });
 
     return result;
-  }, [search, subject, sort]);
+  }, [books, search, subject, sort]);
 
   return (
     <div>
@@ -59,11 +66,12 @@ export default function ReaderDashboardPage() {
 
       {view === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((book, idx) => (
+          {filtered.map((book, i) => (
             <BookCard
               key={book.id}
               book={book}
-              index={idx + 1}
+              index={i + 1}
+              onToggleFavorite={toggleFavorite}
               actions={
                 book.status === "available" ? (
                   <button className="btn btn-primary btn-sm">Borrow</button>
@@ -73,21 +81,20 @@ export default function ReaderDashboardPage() {
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="flex flex-col gap-3 min-w-[600px]">
-            {filtered.map((book, idx) => (
-              <BookRow
-                key={book.id}
-                book={book}
-                index={idx + 1}
-                actions={
-                  book.status === "available" ? (
-                    <button className="btn btn-primary btn-sm">Borrow</button>
-                  ) : null
-                }
-              />
-            ))}
-          </div>
+        <div className="flex flex-col gap-3">
+          {filtered.map((book, i) => (
+            <BookRow
+              key={book.id}
+              book={book}
+              index={i + 1}
+              onToggleFavorite={toggleFavorite}
+              actions={
+                book.status === "available" ? (
+                  <button className="btn btn-primary btn-sm">Borrow</button>
+                ) : null
+              }
+            />
+          ))}
         </div>
       )}
 

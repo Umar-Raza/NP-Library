@@ -1,19 +1,22 @@
 import { Book } from "@/lib/types";
-import { Download, BookOpen } from "lucide-react";
-import StatusBadge from "@/components/ui/StatusBadge";
+import { Download, BookOpen, Star } from "lucide-react";
 
 export default function BookCard({
   book,
   index,
   actions,
+  adminActions,
   showDownload = true,
   showAvailableStatus = false,
+  onToggleFavorite,
 }: {
   book: Book;
   index: number;
+  actions?: React.ReactNode; // left side (Borrow — reader)
+  adminActions?: React.ReactNode; // right side (Edit/Delete — librarian)
   showDownload?: boolean;
   showAvailableStatus?: boolean;
-  actions?: React.ReactNode;
+  onToggleFavorite?: (id: string) => void;
 }) {
   return (
     <div className="card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-shadow">
@@ -31,7 +34,7 @@ export default function BookCard({
             {book.bookName}
           </h2>
 
-          {/* Metadata Stack - All aligned on the left side */}
+          {/* Metadata Stack */}
           <div className="space-y-2 text-xs sm:text-sm">
             <div>
               <span className="text-base-content/40 text-[11px] font-semibold uppercase tracking-wider block">
@@ -67,14 +70,40 @@ export default function BookCard({
             </div>
           </div>
 
-          {/* Download & Custom Actions */}
+          {/* Bottom actions row */}
           <div className="flex items-center justify-between gap-2 mt-auto pt-3">
-            <StatusBadge
-              status={book.status}
-              borrowedBy={book.borrowedBy}
-              showAvailable={showAvailableStatus}
-            />
-            <div className="flex items-center gap-2">
+            {/* Left: Borrow button OR borrower name OR Available */}
+            <div className="min-w-0">
+              {book.status === "borrowed" ? (
+                <span className="badge badge-warning font-medium truncate max-w-full">
+                  {book.borrowedBy}
+                </span>
+              ) : showAvailableStatus ? (
+                <span className="btn btn-outline btn-success btn-sm pointer-events-none">
+                  Available
+                </span>
+              ) : (
+                actions
+              )}
+            </div>
+
+            {/* Right: Star + Download + adminActions */}
+            <div className="flex items-center gap-2 shrink-0">
+              {onToggleFavorite && (
+                <button
+                  onClick={() => onToggleFavorite(book.id)}
+                  className={`btn btn-ghost btn-sm border border-base-300 ${book.isFavorite ? "text-warning" : "text-base-content/40"}`}
+                  title={
+                    book.isFavorite ? "Remove from Starred" : "Add to Starred"
+                  }
+                >
+                  <Star
+                    size={14}
+                    fill={book.isFavorite ? "currentColor" : "none"}
+                  />
+                </button>
+              )}
+
               {book.bookLink && showDownload && (
                 <a
                   href={book.bookLink}
@@ -85,7 +114,8 @@ export default function BookCard({
                   <Download size={14} />
                 </a>
               )}
-              {actions}
+
+              {adminActions}
             </div>
           </div>
         </div>

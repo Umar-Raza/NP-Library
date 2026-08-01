@@ -10,8 +10,8 @@ export const dummyBooks: Book[] = [
     maktaba: "Maktaba Rehmania",
     libraryCode: "HD-001",
     bookLink: "https://example.com/book1.pdf",
-    status: "borrowed",
-    borrowedBy: "Umar",
+    status: "available",
+    // borrowedBy: "Umar",
     addedAt: "2026-07-10",
   },
   {

@@ -8,6 +8,7 @@ import {
   Users,
   ClipboardList,
   LogOut,
+  Star,
   X,
 } from "lucide-react";
 
@@ -26,6 +27,7 @@ const librarianLinks = [
 const readerLinks = [
   { href: "/reader/dashboard", label: "Books", icon: BookOpen },
   { href: "/reader/issued-books", label: "Issued Books", icon: ClipboardList },
+  { href: "/reader/starred", label: "Starred", icon: Star },
 ];
 
 export default function Sidebar({

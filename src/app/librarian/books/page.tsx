@@ -80,16 +80,16 @@ export default function LibrarianBooksPage() {
     }
   };
 
-  const renderActions = (book: Book) => (
+  const renderAdminActions = (book: Book) => (
     <div className="flex items-center gap-1.5">
       <button
-        className="btn btn-ghost btn-sm btn-square"
+        className="btn btn-ghost btn-sm btn-square border border-base-300"
         onClick={() => handleEditClick(book)}
       >
         <Pencil size={14} />
       </button>
       <button
-        className="btn btn-ghost btn-sm btn-square text-error"
+        className="btn btn-ghost btn-sm btn-square border border-base-300 text-error"
         onClick={() => handleDelete(book.id)}
       >
         <Trash2 size={14} />
@@ -125,7 +125,7 @@ export default function LibrarianBooksPage() {
               key={book.id}
               book={book}
               index={i + 1}
-              actions={renderActions(book)}
+              adminActions={renderAdminActions(book)}
               showDownload={false}
               showAvailableStatus={true}
             />
@@ -138,7 +138,7 @@ export default function LibrarianBooksPage() {
               key={book.id}
               book={book}
               index={i + 1}
-              actions={renderActions(book)}
+              adminActions={renderAdminActions(book)}
               showDownload={false}
               showAvailableStatus={true}
             />
