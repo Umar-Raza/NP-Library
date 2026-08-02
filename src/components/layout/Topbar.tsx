@@ -3,6 +3,8 @@
 import { Bell, User, LogOut, ChevronDown, Menu } from "lucide-react";
 import NotificationPanel from "./NotificationPanel";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signOut } from "@/lib/api/auth";
 
 export default function Topbar({
   userName,
@@ -13,6 +15,13 @@ export default function Topbar({
   role: string;
   onMenuClick: () => void;
 }) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/login");
+    router.refresh();
+  };
   return (
     <header className="h-16 flex items-center justify-between px-4 sm:px-8 bg-base-100 border-b border-base-300 sticky top-0 z-10">
       <div className="flex items-center gap-3">
@@ -69,7 +78,10 @@ export default function Topbar({
               </Link>
             </li>
             <li>
-              <a className="flex items-center gap-2 text-error">
+              <a
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-error"
+              >
                 <LogOut size={16} /> Logout
               </a>
             </li>

@@ -20,7 +20,6 @@ export default function LibrarianDashboardPage() {
     (r) => r.status === "approved",
   ).length;
   const pendingRequests = dummyReaders.filter((r) => r.status === "pending");
-
   const stats = [
     {
       label: "Total Books",

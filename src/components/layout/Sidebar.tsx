@@ -1,5 +1,6 @@
 "use client";
-
+import { useRouter } from "next/navigation";
+import { signOut } from "@/lib/api/auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -42,6 +43,14 @@ export default function Sidebar({
   const pathname = usePathname();
   const links = role === "librarian" ? librarianLinks : readerLinks;
 
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
   const SidebarContent = (
     <>
       <div className="px-4 py-6 flex items-center gap-2 border-b border-white/10">
@@ -73,14 +82,16 @@ export default function Sidebar({
       </nav>
 
       <div className="px-3 py-4 border-t border-white/10">
-        <button className="flex items-center gap-3 px-4 py-2.5 w-full rounded-field hover:bg-white/10 text-neutral-content/80">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-2.5 w-full rounded-field hover:bg-white/10 text-neutral-content/80"
+        >
           <LogOut size={18} className="shrink-0" />
           <span>Logout</span>
         </button>
       </div>
     </>
   );
-
   return (
     <>
       {/* Mobile overlay */}

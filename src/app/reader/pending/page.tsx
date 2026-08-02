@@ -1,5 +1,4 @@
-import { Clock, BookOpen, LogOut } from "lucide-react";
-
+import { Clock, BookOpen } from "lucide-react";
 export default function PendingApprovalPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200 px-4">
@@ -21,15 +20,10 @@ export default function PendingApprovalPage() {
             Aapka registration librarian ke paas review ke liye bheja gaya hai.
             Approve hote hi aapko books list tak access mil jayega.
           </p>
-
           <div className="alert alert-info text-sm mt-6 text-left">
             Ye process aam taur par jaldi ho jata hai. Iske baad aap login kar
             ke seedha books dekh sakenge.
           </div>
-
-          <button className="btn btn-ghost btn-sm mt-6 gap-2">
-            <LogOut size={16} /> Logout
-          </button>
         </div>
       </div>
     </div>

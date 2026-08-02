@@ -1,18 +1,28 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import SearchFilterBar from "@/components/books/SearchFilterBar";
 import BookCard from "@/components/books/BookCard";
 import BookRow from "@/components/books/BookRow";
-import { dummyBooks } from "@/lib/dummy-books";
+import { getBooks } from "@/lib/api/books";
 import { Book, ViewMode, SortOption } from "@/lib/types";
 
 export default function ReaderDashboardPage() {
-  const [books, setBooks] = useState<Book[]>(dummyBooks);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const [search, setSearch] = useState("");
   const [subject, setSubject] = useState("");
   const [sort, setSort] = useState<SortOption>("newest");
   const [view, setView] = useState<ViewMode>("grid");
+
+  useEffect(() => {
+    getBooks()
+      .then(setBooks)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   const subjects = useMemo(
     () => [...new Set(books.map((b) => b.subject))],
@@ -47,6 +57,18 @@ export default function ReaderDashboardPage() {
 
     return result;
   }, [books, search, subject, sort]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="text-center text-error py-20">{error}</p>;
+  }
 
   return (
     <div>

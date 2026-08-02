@@ -1,31 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookOpen } from "lucide-react";
-import { signUp } from "@/lib/api/auth";
+import { createClient } from "@/lib/supabase/client";
 
-export default function SignupPage() {
+export default function ResetPasswordPage() {
   const router = useRouter();
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [done, setDone] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Client-side validation
     if (password !== confirmPassword) {
-      setError("Password aur Confirm Password match nahi karte.");
+      setError("Password match nahi karte.");
       return;
     }
     if (password.length < 6) {
@@ -35,31 +29,31 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      await signUp({ fullName, email, whatsapp, password });
-      setSuccess(true);
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw new Error(error.message);
+      setDone(true);
+      setTimeout(() => router.push("/login"), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Signup fail ho gaya.");
+      setError(
+        err instanceof Error ? err.message : "Password update fail ho gaya.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Success state — email confirmation ka message
-  if (success) {
+  if (done) {
     return (
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body items-center text-center">
           <BookOpen className="text-primary" size={32} />
           <h1 className="font-display text-2xl font-semibold mt-2">
-            Account ban gaya!
+            Password badal gaya!
           </h1>
           <p className="text-base-content/60 text-sm mt-2">
-            Aapka account create ho gaya hai. Ab librarian aapki request approve
-            karega, uske baad aap books access kar sakenge.
+            Ab aap naye password se login kar sakte hain.
           </p>
-          <Link href="/login" className="btn btn-primary mt-4 w-full">
-            Login par jayein
-          </Link>
         </div>
       </div>
     );
@@ -70,10 +64,7 @@ export default function SignupPage() {
       <div className="card-body">
         <div className="flex flex-col items-center gap-2 mb-4">
           <BookOpen className="text-primary" size={32} />
-          <h1 className="font-display text-2xl font-semibold">NP Library</h1>
-          <p className="text-base-content/60 text-sm">
-            Naya reader account banayen
-          </p>
+          <h1 className="font-display text-2xl font-semibold">Naya Password</h1>
         </div>
 
         {error && (
@@ -83,49 +74,7 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Name</span>
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="Aapka naam"
-              className="input input-bordered w-full"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Email</span>
-            </label>
-            <input
-              type="email"
-              required
-              placeholder="you@example.com"
-              className="input input-bordered w-full"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">WhatsApp</span>
-            </label>
-            <input
-              type="tel"
-              required
-              placeholder="03xx-xxxxxxx"
-              className="input input-bordered w-full"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Password</span>
+              <span className="label-text">Naya Password</span>
             </label>
             <input
               type="password"
@@ -159,17 +108,10 @@ export default function SignupPage() {
             {loading ? (
               <span className="loading loading-spinner loading-sm"></span>
             ) : (
-              "Signup"
+              "Password Update Karein"
             )}
           </button>
         </form>
-
-        <p className="text-center text-sm text-base-content/60 mt-4">
-          Pehle se account hai?{" "}
-          <Link href="/login" className="text-primary font-medium">
-            Login karein
-          </Link>
-        </p>
       </div>
     </div>
   );
