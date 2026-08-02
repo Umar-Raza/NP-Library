@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Check, X, Mail, Phone, Calendar } from "lucide-react";
+// import { Search, Check, X, Mail, Phone, Calendar } from "lucide-react";
+import { Search, Check, X, Mail, Phone, Calendar, Ban } from "lucide-react";
 import {
   getPendingReaders,
   getApprovedReaderProfiles,
   approveReader,
   rejectReader,
+  revokeReader,
+  ReaderProfile,
   ReaderProfile,
 } from "@/lib/api/readers";
 
@@ -60,6 +63,29 @@ export default function RequestsPage() {
       setPending((prev) => prev.filter((r) => r.id !== id));
     } catch (e) {
       alert(e instanceof Error ? e.message : "Reject fail ho gaya.");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  // revoke access
+  const handleRevoke = async (id: string) => {
+    if (
+      !confirm(
+        "Is reader ka access revoke karna chahte hain? Wo dobara pending ho jayega.",
+      )
+    )
+      return;
+    setActionId(id);
+    try {
+      await revokeReader(id);
+      // Approved list se hata kar pending mein daal dein
+      const reader = approved.find((r) => r.id === id);
+      setApproved((prev) => prev.filter((r) => r.id !== id));
+      if (reader)
+        setPending((prev) => [{ ...reader, status: "pending" }, ...prev]);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Revoke fail ho gaya.");
     } finally {
       setActionId(null);
     }
@@ -200,52 +226,62 @@ export default function RequestsPage() {
             />
           </div>
 
-          {filteredApproved.length === 0 ? (
-            <p className="text-center text-base-content/50 py-10">
-              Koi reader nahi mila.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {filteredApproved.map((r) => (
-                <div
-                  key={r.id}
-                  className="flex items-center justify-between gap-3 bg-base-100 border border-base-300 rounded-box px-4 py-3.5"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold truncate">{r.fullName}</p>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-base-content/50">
-                      <span className="flex items-center gap-1">
-                        <a
-                          href={`mailto:${r.email}`}
-                          className="flex items-center gap-1 hover:text-primary transition-colors"
-                        >
-                          <Mail size={12} /> {r.email}
-                        </a>
-                      </span>
-                      {r.whatsapp && (
-                        <a
-                          href={`https://wa.me/${r.whatsapp.replace(/[^0-9]/g, "")}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 hover:text-primary transition-colors"
-                        >
-                          <Phone size={12} /> {r.whatsapp}
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="badge badge-success badge-outline badge-sm">
-                      Approved
-                    </span>
-                    <p className="text-xs text-base-content/40 mt-1">
-                      {fmtDate(r.createdAt)}
-                    </p>
-                  </div>
+          {filteredApproved.map((r) => (
+            <div
+              key={r.id}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2 bg-base-100 border border-base-300 rounded-box px-4 py-3.5"
+            >
+              <div className="min-w-0">
+                <p className="font-semibold truncate">{r.fullName}</p>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-base-content/50">
+                  <a
+                    href={`mailto:${r.email}`}
+                    className="flex items-center gap-1 hover:text-primary transition-colors"
+                  >
+                    <Mail size={12} /> {r.email}
+                  </a>
+                  {r.whatsapp && (
+                    <a
+                      href={`https://wa.me/${r.whatsapp.replace(/[^0-9]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 hover:text-primary transition-colors"
+                    >
+                      <Phone size={12} /> {r.whatsapp}
+                    </a>
+                  )}
                 </div>
-              ))}
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="text-right hidden sm:block">
+                  <span className="badge badge-success badge-outline badge-sm">
+                    Approved
+                  </span>
+                  <p className="text-xs text-base-content/40 mt-1">
+                    {new Date(r.createdAt).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <button
+                  className="btn btn-ghost btn-sm gap-1 border border-error/30 text-error hover:bg-error/10"
+                  onClick={() => handleRevoke(r.id)}
+                  disabled={actionId === r.id}
+                >
+                  {actionId === r.id ? (
+                    <span className="loading loading-spinner loading-xs"></span>
+                  ) : (
+                    <>
+                      <Ban size={14} />{" "}
+                      <span className="hidden sm:inline">Revoke</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       )}
     </div>

@@ -99,3 +99,16 @@ export async function rejectReader(id: string): Promise<void> {
     throw new Error("Reject nahi ho saka.");
   }
 }
+
+// Revoke access — approved reader ko wapas pending karein
+export async function revokeReader(id: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ status: "pending" })
+    .eq("id", id);
+  if (error) {
+    console.error("revokeReader error:", error.message);
+    throw new Error("Revoke nahi ho saka.");
+  }
+}
