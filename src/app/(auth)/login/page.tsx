@@ -5,46 +5,54 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookOpen } from "lucide-react";
 import { signIn, getMyProfile } from "@/lib/api/auth";
+import FormInput from "@/components/ui/FormInput";
 
 export default function LoginPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [apiError, setApiError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!email.trim()) e.email = "Email zaroori hai.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      e.email = "Sahi email daalein.";
+    if (!password) e.password = "Password zaroori hai.";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    setApiError("");
+    if (!validate()) return;
+
     setLoading(true);
-
     try {
-      // 1) Login
       await signIn(email, password);
-
-      // 2) Profile fetch — role aur status pata karein
       const profile = await getMyProfile();
 
       if (!profile) {
-        setError("Profile load nahi ho saka. Dobara koshish karein.");
+        setApiError("Profile load nahi ho saka. Dobara koshish karein.");
         setLoading(false);
         return;
       }
 
-      // 3) Role + status ke hisaab se navigate
       if (profile.role === "librarian") {
         router.push("/librarian/dashboard");
       } else {
-        // reader
-        if (profile.status === "approved") {
-          router.push("/reader/dashboard");
-        } else {
-          router.push("/reader/pending");
-        }
+        router.push(
+          profile.status === "approved"
+            ? "/reader/dashboard"
+            : "/reader/pending",
+        );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login fail ho gaya.");
+      setApiError(err instanceof Error ? err.message : "Login fail ho gaya.");
       setLoading(false);
     }
   };
@@ -60,36 +68,30 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {error && (
-          <div className="alert alert-error text-sm py-2 mb-2">{error}</div>
+        {apiError && (
+          <div className="alert alert-error text-sm py-2 mb-2">{apiError}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Email</span>
-            </label>
-            <input
-              type="email"
-              required
-              placeholder="you@example.com"
-              className="input input-bordered w-full"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+          <FormInput
+            label="Email"
+            type="email"
+            required
+            placeholder="you@example.com"
+            value={email}
+            onChange={setEmail}
+            error={errors.email}
+          />
 
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Password</span>
-            </label>
-            <input
+          <div>
+            <FormInput
+              label="Password"
               type="password"
               required
               placeholder="••••••••"
-              className="input input-bordered w-full"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={setPassword}
+              error={errors.password}
             />
             <div className="text-right mt-1">
               <Link
@@ -103,7 +105,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="btn btn-primary w-full"
+            className="btn btn-primary w-full mt-2"
             disabled={loading}
           >
             {loading ? (

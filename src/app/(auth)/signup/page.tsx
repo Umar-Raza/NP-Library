@@ -2,49 +2,65 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { BookOpen } from "lucide-react";
 import { signUp } from "@/lib/api/auth";
+import FormInput from "@/components/ui/FormInput";
 
 export default function SignupPage() {
-  const router = useRouter();
-
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [apiError, setApiError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const validate = () => {
+    const e: Record<string, string> = {};
 
-    // Client-side validation
-    if (password !== confirmPassword) {
-      setError("Password aur Confirm Password match nahi karte.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password kam se kam 6 characters ka hona chahiye.");
-      return;
-    }
+    if (!fullName.trim()) e.fullName = "Name is required.";
+    else if (fullName.trim().length < 2) e.fullName = "Minimum 2 characters.";
+
+    if (!email.trim()) e.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      e.email = "Enter a valid email.";
+
+    if (!whatsapp.trim()) e.whatsapp = "WhatsApp is required.";
+    else if (!/^\+?\d{10,15}$/.test(whatsapp.replace(/[\-\s]/g, "")))
+      e.whatsapp = "Enter a valid number (e.g., +923xxxxxxxxx).";
+
+    if (!password) e.password = "Password is required.";
+    else if (password.length < 6) e.password = "Minimum 6 characters.";
+
+    if (!confirmPassword) e.confirmPassword = "Password is required.";
+    else if (password !== confirmPassword)
+      e.confirmPassword = "Passwords do not match.";
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    setApiError("");
+    if (!validate()) return;
 
     setLoading(true);
     try {
       await signUp({ fullName, email, whatsapp, password });
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Signup fail ho gaya.");
+      setApiError(
+        err instanceof Error ? err.message : "Failed to create account.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Success state — email confirmation ka message
   if (success) {
     return (
       <div className="card bg-base-100 shadow-xl">
@@ -54,11 +70,11 @@ export default function SignupPage() {
             Account ban gaya!
           </h1>
           <p className="text-base-content/60 text-sm mt-2">
-            Aapka account create ho gaya hai. Ab librarian aapki request approve
-            karega, uske baad aap books access kar sakenge.
+            Aapka account create ho gaya hai. Librarian approve karega, uske
+            baad books access kar sakenge.
           </p>
           <Link href="/login" className="btn btn-primary mt-4 w-full">
-            Login par jayein
+            Login
           </Link>
         </div>
       </div>
@@ -72,88 +88,63 @@ export default function SignupPage() {
           <BookOpen className="text-primary" size={32} />
           <h1 className="font-display text-2xl font-semibold">NP Library</h1>
           <p className="text-base-content/60 text-sm">
-            Naya reader account banayen
+            Create a new reader account
           </p>
         </div>
 
-        {error && (
-          <div className="alert alert-error text-sm py-2 mb-2">{error}</div>
+        {apiError && (
+          <div className="alert alert-error text-sm py-2 mb-2">{apiError}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Name</span>
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="Aapka naam"
-              className="input input-bordered w-full"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Email</span>
-            </label>
-            <input
-              type="email"
-              required
-              placeholder="you@example.com"
-              className="input input-bordered w-full"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">WhatsApp</span>
-            </label>
-            <input
-              type="tel"
-              required
-              placeholder="03xx-xxxxxxx"
-              className="input input-bordered w-full"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Password</span>
-            </label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              className="input input-bordered w-full"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text">Confirm Password</span>
-            </label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              className="input input-bordered w-full"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+          <FormInput
+            label="Name"
+            required
+            placeholder="Your name"
+            value={fullName}
+            onChange={setFullName}
+            error={errors.fullName}
+          />
+          <FormInput
+            label="Email"
+            type="email"
+            required
+            placeholder="you@example.com"
+            value={email}
+            onChange={setEmail}
+            error={errors.email}
+          />
+          <FormInput
+            label="WhatsApp"
+            type="tel"
+            required
+            placeholder="+923xxxxxxxxx"
+            value={whatsapp}
+            onChange={setWhatsapp}
+            error={errors.whatsapp}
+          />
+          <FormInput
+            label="Password"
+            type="password"
+            required
+            placeholder="••••••••"
+            value={password}
+            onChange={setPassword}
+            error={errors.password}
+          />
+          <FormInput
+            label="Confirm Password"
+            type="password"
+            required
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            error={errors.confirmPassword}
+          />
 
           <button
             type="submit"
-            className="btn btn-primary w-full"
+            className="btn btn-primary w-full mt-2"
             disabled={loading}
           >
             {loading ? (
