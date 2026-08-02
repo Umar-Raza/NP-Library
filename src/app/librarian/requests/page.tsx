@@ -1,28 +1,67 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Check, X } from "lucide-react";
-import { dummyReaders, Reader } from "@/lib/dummy-readers";
+import { useState, useEffect, useCallback } from "react";
+import { Search, Check, X, Mail, Phone, Calendar } from "lucide-react";
+import {
+  getPendingReaders,
+  getApprovedReaderProfiles,
+  approveReader,
+  rejectReader,
+  ReaderProfile,
+} from "@/lib/api/readers";
 
 type Tab = "requests" | "readers";
 
 export default function RequestsPage() {
-  const [readers, setReaders] = useState<Reader[]>(dummyReaders);
   const [tab, setTab] = useState<Tab>("requests");
+
+  const [pending, setPending] = useState<ReaderProfile[]>([]);
+  const [approved, setApproved] = useState<ReaderProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [actionId, setActionId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
-  const pending = readers.filter((r) => r.status === "pending");
-  const approved = readers.filter((r) => r.status === "approved");
+  const load = useCallback(() => {
+    setLoading(true);
+    Promise.all([getPendingReaders(), getApprovedReaderProfiles()])
+      .then(([p, a]) => {
+        setPending(p);
+        setApproved(a);
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleApprove = (id: string) => {
-    setReaders((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: "approved" } : r)),
-    );
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const handleApprove = async (id: string) => {
+    setActionId(id);
+    try {
+      await approveReader(id);
+      const reader = pending.find((r) => r.id === id);
+      setPending((prev) => prev.filter((r) => r.id !== id));
+      if (reader)
+        setApproved((prev) => [{ ...reader, status: "approved" }, ...prev]);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Approve fail ho gaya.");
+    } finally {
+      setActionId(null);
+    }
   };
 
-  const handleReject = (id: string) => {
-    if (confirm("Kya aap ye request reject karna chahte hain?")) {
-      setReaders((prev) => prev.filter((r) => r.id !== id));
+  const handleReject = async (id: string) => {
+    if (!confirm("Kya aap ye request reject karna chahte hain?")) return;
+    setActionId(id);
+    try {
+      await rejectReader(id);
+      setPending((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Reject fail ho gaya.");
+    } finally {
+      setActionId(null);
     }
   };
 
@@ -32,147 +71,181 @@ export default function RequestsPage() {
       r.email.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const fmtDate = (d: string) =>
+    new Date(d).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+
   return (
     <div>
       <h1 className="text-2xl font-display font-semibold mb-6">Requests</h1>
 
       {/* Tabs */}
-      <div role="tablist" className="tabs tabs-boxed w-fit mb-6 bg-base-200">
+      <div className="grid grid-cols-2 gap-2 p-1 bg-base-200 rounded-xl w-full max-w-xs mb-6">
         <button
-          role="tab"
-          className={`tab ${tab === "requests" ? "tab-active font-semibold" : ""}`}
+          className={`py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+            tab === "requests"
+              ? "bg-primary text-primary-content shadow-sm"
+              : "text-base-content/60"
+          }`}
           onClick={() => setTab("requests")}
         >
-          Requests{" "}
+          Requests
           {pending.length > 0 && (
-            <span className="badge badge-primary px-1.5 py-1 badge-sm ml-2">
+            <span className="badge badge-neutral px-2 py-1 rounded">
               {pending.length}
             </span>
           )}
         </button>
         <button
-          role="tab"
-          className={`tab ${tab === "readers" ? "tab-active font-semibold" : ""}`}
+          className={`py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+            tab === "readers"
+              ? "bg-primary text-primary-content shadow-sm"
+              : "text-base-content/60"
+          }`}
           onClick={() => setTab("readers")}
         >
           Readers
         </button>
       </div>
 
-      {/* Requests Tab */}
-      {tab === "requests" && (
+      {loading ? (
         <div className="flex flex-col gap-3">
-          {pending.length === 0 ? (
-            <p className="text-center text-base-content/50 py-10">
-              Koi pending request nahi hai.
-            </p>
-          ) : (
-            pending.map((reader) => (
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton h-20 w-full rounded-box"></div>
+          ))}
+        </div>
+      ) : error ? (
+        <p className="text-center text-error py-20">{error}</p>
+      ) : tab === "requests" ? (
+        // ===== Requests tab =====
+        pending.length === 0 ? (
+          <p className="text-center text-base-content/50 py-10">
+            Koi pending request nahi hai.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {pending.map((r) => (
               <div
-                key={reader.id}
+                key={r.id}
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-base-100 border border-base-300 rounded-box px-4 py-3.5"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="avatar placeholder">
-                    <div className="bg-secondary text-secondary-content rounded-full w-10">
-                      <span className="text-sm font-medium flex items-center justify-center w-full h-full">
-                        {reader.fullName[0]?.toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold truncate">{reader.fullName}</p>
-                    <p className="text-sm text-base-content/50 truncate">
-                      {reader.email}
-                    </p>
-                    <p className="text-xs text-base-content/40">
-                      {new Date(reader.registeredAt).toLocaleDateString(
-                        "en-GB",
-                        { day: "2-digit", month: "short", year: "numeric" },
-                      )}{" "}
-                      ko request ki
-                    </p>
+                <div className="min-w-0">
+                  <p className="font-semibold truncate">{r.fullName}</p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-base-content/50">
+                    <span className="flex items-center gap-1">
+                      <Mail size={12} />
+                      <a
+                        href={`mailto:${r.email}`}
+                        className="flex items-center gap-1 hover:text-primary transition-colors"
+                      >
+                        {r.email}
+                      </a>
+                    </span>
+                    {r.whatsapp && (
+                      <a
+                        href={`https://wa.me/${r.whatsapp.replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 hover:text-primary transition-colors"
+                      >
+                        <Phone size={12} /> {r.whatsapp}
+                      </a>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Calendar size={12} /> {fmtDate(r.createdAt)}
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     className="btn btn-primary btn-sm gap-1"
-                    onClick={() => handleApprove(reader.id)}
+                    onClick={() => handleApprove(r.id)}
+                    disabled={actionId === r.id}
                   >
-                    <Check size={14} /> Approve
+                    {actionId === r.id ? (
+                      <span className="loading loading-spinner loading-xs"></span>
+                    ) : (
+                      <>
+                        <Check size={14} /> Approve
+                      </>
+                    )}
                   </button>
                   <button
                     className="btn btn-ghost btn-sm gap-1 border border-base-300 text-error"
-                    onClick={() => handleReject(reader.id)}
+                    onClick={() => handleReject(r.id)}
+                    disabled={actionId === r.id}
                   >
                     <X size={14} /> Reject
                   </button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Readers Tab */}
-      {tab === "readers" && (
+            ))}
+          </div>
+        )
+      ) : (
+        // ===== Readers tab =====
         <div>
-          <label className="input input-bordered flex items-center gap-2 mb-6 max-w-md">
-            <Search size={18} className="text-base-content/40" />
+          <div className="flex items-center gap-2 mb-6 max-w-md border-2 border-base-300 rounded-lg px-3.5 py-2.5 bg-base-100 focus-within:border-primary transition-colors">
+            <Search size={18} className="text-base-content/40 shrink-0" />
             <input
               type="text"
-              className="grow"
+              className="flex-1 min-w-0 bg-transparent outline-none text-sm"
               placeholder="Reader ka naam ya email search karein..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-          </label>
+          </div>
 
-          <div className="flex flex-col gap-3">
-            {filteredApproved.map((reader) => (
-              <div
-                key={reader.id}
-                className="flex items-center justify-between gap-3 bg-base-100 border border-base-300 rounded-box px-4 py-3.5"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="avatar">
-                    <div className="bg-secondary text-secondary-content rounded-full w-10">
-                      <span className="text-sm font-medium flex items-center justify-center w-full h-full">
-                        {reader.fullName[0]?.toUpperCase()}
+          {filteredApproved.length === 0 ? (
+            <p className="text-center text-base-content/50 py-10">
+              Koi reader nahi mila.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {filteredApproved.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between gap-3 bg-base-100 border border-base-300 rounded-box px-4 py-3.5"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold truncate">{r.fullName}</p>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-base-content/50">
+                      <span className="flex items-center gap-1">
+                        <a
+                          href={`mailto:${r.email}`}
+                          className="flex items-center gap-1 hover:text-primary transition-colors"
+                        >
+                          <Mail size={12} /> {r.email}
+                        </a>
                       </span>
+                      {r.whatsapp && (
+                        <a
+                          href={`https://wa.me/${r.whatsapp.replace(/[^0-9]/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 hover:text-primary transition-colors"
+                        >
+                          <Phone size={12} /> {r.whatsapp}
+                        </a>
+                      )}
                     </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold truncate">{reader.fullName}</p>
-                    <p className="text-sm text-base-content/50 truncate">
-                      {reader.email}
+                  <div className="text-right shrink-0">
+                    <span className="badge badge-success badge-outline badge-sm">
+                      Approved
+                    </span>
+                    <p className="text-xs text-base-content/40 mt-1">
+                      {fmtDate(r.createdAt)}
                     </p>
                   </div>
                 </div>
-
-                <div className="text-right shrink-0">
-                  <span className="badge badge-success badge-outline badge-sm">
-                    Approved
-                  </span>
-                  <p className="text-xs text-base-content/40 mt-1">
-                    Member since{" "}
-                    {new Date(reader.registeredAt).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-            ))}
-
-            {filteredApproved.length === 0 && (
-              <p className="text-center text-base-content/50 py-10">
-                Koi reader nahi mila.
-              </p>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
