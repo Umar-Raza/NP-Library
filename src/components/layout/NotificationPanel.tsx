@@ -24,20 +24,17 @@ export default function NotificationPanel() {
   const unreadCount = dummyNotifications.filter((n) => !n.isRead).length;
 
   return (
-    <div className="dropdown dropdown-end">
-      <div
-        tabIndex={0}
-        role="button"
-        className="btn btn-ghost btn-circle btn-sm relative"
+    <details className="dropdown dropdown-end">
+      <summary
+        className="btn btn-ghost btn-circle btn-sm relative list-none [&::-webkit-details-marker]:hidden"
       >
         <Bell size={20} />
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
         )}
-      </div>
+      </summary>
 
       <div
-        tabIndex={0}
         className="dropdown-content z-20 mt-2 w-80 sm:w-96 bg-base-100 rounded-box shadow-lg border border-base-300 max-h-[70vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-base-300">
@@ -77,6 +74,6 @@ export default function NotificationPanel() {
           </ul>
         )}
       </div>
-    </div>
+    </details>
   );
 }
