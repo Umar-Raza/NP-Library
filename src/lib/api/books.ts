@@ -245,3 +245,48 @@ export async function getIssuedBooks(search = ""): Promise<Book[]> {
     addedAt: row.created_at,
   }));
 }
+
+// ---- BOOKS LOG (borrow chain per book) ----
+export interface ChainEntry {
+  borrowerName: string;
+  borrowedAt: string;
+}
+
+export interface BookChain {
+  bookId: string;
+  bookName: string;
+  chain: ChainEntry[];
+}
+
+export async function getBooksLog(search = ""): Promise<BookChain[]> {
+  const supabase = createClient();
+
+  // Sirf borrowed books, unke saare borrow_records ke sath (chain)
+  let query = supabase
+    .from("books")
+    .select("id, book_name, borrow_records(borrower_name, borrowed_at)")
+    .eq("status", "borrowed")
+    .order("borrowed_at", { ascending: true, foreignTable: "borrow_records" });
+
+  if (search.trim()) {
+    query = query.ilike("book_name", `%${search.trim()}%`);
+  }
+
+  const { data, error } = await query.order("book_name", { ascending: true });
+
+  if (error) {
+    console.error("getBooksLog error:", error.message);
+    throw new Error("Books log load nahi ho saka.");
+  }
+
+  return (data as any[])
+    .filter((row) => (row.borrow_records?.length ?? 0) > 0)
+    .map((row) => ({
+      bookId: row.id,
+      bookName: row.book_name,
+      chain: (row.borrow_records ?? []).map((r: any) => ({
+        borrowerName: r.borrower_name,
+        borrowedAt: r.borrowed_at,
+      })),
+    }));
+}
