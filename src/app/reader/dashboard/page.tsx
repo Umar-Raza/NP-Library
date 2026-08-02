@@ -1,74 +1,43 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import SearchFilterBar from "@/components/books/SearchFilterBar";
 import BookCard from "@/components/books/BookCard";
 import BookRow from "@/components/books/BookRow";
-import { getBooks } from "@/lib/api/books";
-import { Book, ViewMode, SortOption } from "@/lib/types";
+import BooksSkeleton from "@/components/books/BooksSkeleton";
+import { useInfiniteBooks } from "@/hooks/useInfiniteBooks";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { ViewMode } from "@/lib/types";
 
 export default function ReaderDashboardPage() {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const {
+    books,
+    loading,
+    loadingMore,
+    hasMore,
+    error,
+    search,
+    setSearch,
+    subject,
+    setSubject,
+    sort,
+    setSort,
+    loadMore,
+  } = useInfiniteBooks();
 
-  const [search, setSearch] = useState("");
-  const [subject, setSubject] = useState("");
-  const [sort, setSort] = useState<SortOption>("newest");
   const [view, setView] = useState<ViewMode>("grid");
-
-  useEffect(() => {
-    getBooks()
-      .then(setBooks)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
+  const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loading);
 
   const subjects = useMemo(
     () => [...new Set(books.map((b) => b.subject))],
     [books],
   );
 
-  const toggleFavorite = (id: string) => {
-    setBooks((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, isFavorite: !b.isFavorite } : b)),
-    );
+  // Favorites — filhal local (Supabase favorites baad mein connect honge)
+  const handleToggleFavorite = (id: string) => {
+    // TODO: Supabase favorites connect hone par yahan real call
+    console.log("toggle favorite:", id);
   };
-
-  const filtered = useMemo(() => {
-    let result = books.filter((b) => {
-      const matchesSearch =
-        b.bookName.toLowerCase().includes(search.toLowerCase()) ||
-        b.authorName.toLowerCase().includes(search.toLowerCase()) ||
-        b.libraryCode.toLowerCase().includes(search.toLowerCase());
-      const matchesSubject = subject ? b.subject === subject : true;
-      return matchesSearch && matchesSubject;
-    });
-
-    result = [...result].sort((a, b) => {
-      if (sort === "newest")
-        return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
-      if (sort === "oldest")
-        return new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime();
-      if (sort === "title-az") return a.bookName.localeCompare(b.bookName);
-      if (sort === "title-za") return b.bookName.localeCompare(a.bookName);
-      return 0;
-    });
-
-    return result;
-  }, [books, search, subject, sort]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <p className="text-center text-error py-20">{error}</p>;
-  }
 
   return (
     <div>
@@ -86,44 +55,58 @@ export default function ReaderDashboardPage() {
         onViewChange={setView}
       />
 
-      {view === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((book, i) => (
-            <BookCard
-              key={book.id}
-              book={book}
-              index={i + 1}
-              onToggleFavorite={toggleFavorite}
-              actions={
-                book.status === "available" ? (
-                  <button className="btn btn-primary btn-sm">Borrow</button>
-                ) : null
-              }
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {filtered.map((book, i) => (
-            <BookRow
-              key={book.id}
-              book={book}
-              index={i + 1}
-              onToggleFavorite={toggleFavorite}
-              actions={
-                book.status === "available" ? (
-                  <button className="btn btn-primary btn-sm">Borrow</button>
-                ) : null
-              }
-            />
-          ))}
-        </div>
-      )}
-
-      {filtered.length === 0 && (
+      {loading ? (
+        <BooksSkeleton view={view} count={6} />
+      ) : error ? (
+        <p className="text-center text-error py-20">{error}</p>
+      ) : books.length === 0 ? (
         <p className="text-center text-base-content/50 py-10">
           Koi book nahi mili.
         </p>
+      ) : (
+        <>
+          {view === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {books.map((book, i) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  index={i + 1}
+                  showDownload={true}
+                  onToggleFavorite={handleToggleFavorite}
+                  actions={
+                    book.status === "available" ? (
+                      <button className="btn btn-primary btn-sm">Borrow</button>
+                    ) : null
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {books.map((book, i) => (
+                <BookRow
+                  key={book.id}
+                  book={book}
+                  index={i + 1}
+                  showDownload={true}
+                  onToggleFavorite={handleToggleFavorite}
+                  actions={
+                    book.status === "available" ? (
+                      <button className="btn btn-primary btn-sm">Borrow</button>
+                    ) : null
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {hasMore && (
+            <div ref={sentinelRef} className="pt-4">
+              {loadingMore && <BooksSkeleton view={view} count={3} />}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
