@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -8,58 +9,109 @@ import {
   Users,
   UserCheck,
   ArrowRight,
+  Check,
+  X,
 } from "lucide-react";
-import { dummyBooks } from "@/lib/dummy-books";
-import { dummyReaders } from "@/lib/dummy-readers";
+import {
+  getDashboardStats,
+  getRecentlyBorrowed,
+  DashboardStats,
+} from "@/lib/api/dashboard";
+import {
+  getPendingReaders,
+  approveReader,
+  rejectReader,
+  ReaderProfile,
+} from "@/lib/api/readers";
+import { Book } from "@/lib/types";
 
 export default function LibrarianDashboardPage() {
-  const totalBooks = dummyBooks.length;
-  const issuedBooks = dummyBooks.filter((b) => b.status === "borrowed");
-  const availableBooks = totalBooks - issuedBooks.length;
-  const totalReaders = dummyReaders.filter(
-    (r) => r.status === "approved",
-  ).length;
-  const pendingRequests = dummyReaders.filter((r) => r.status === "pending");
-  const stats = [
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recent, setRecent] = useState<Book[]>([]);
+  const [pending, setPending] = useState<ReaderProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [actionId, setActionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      getDashboardStats(),
+      getRecentlyBorrowed(5),
+      getPendingReaders(),
+    ])
+      .then(([s, r, p]) => {
+        setStats(s);
+        setRecent(r);
+        setPending(p);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleApprove = async (id: string) => {
+    setActionId(id);
+    try {
+      await approveReader(id);
+      setPending((prev) => prev.filter((r) => r.id !== id));
+      setStats(
+        (s) =>
+          s && {
+            ...s,
+            pendingRequests: s.pendingRequests - 1,
+            totalReaders: s.totalReaders + 1,
+          },
+      );
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Approve fail.");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    if (!confirm("Reject karein?")) return;
+    setActionId(id);
+    try {
+      await rejectReader(id);
+      setPending((prev) => prev.filter((r) => r.id !== id));
+      setStats((s) => s && { ...s, pendingRequests: s.pendingRequests - 1 });
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Reject fail.");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const statCards = [
     {
       label: "Total Books",
-      value: totalBooks,
+      value: stats?.totalBooks,
       icon: BookOpen,
       color: "text-primary bg-primary/10",
     },
     {
       label: "Issued Books",
-      value: issuedBooks.length,
+      value: stats?.issuedBooks,
       icon: ClipboardList,
       color: "text-warning bg-warning/10",
     },
     {
       label: "Available Books",
-      value: availableBooks,
+      value: stats?.availableBooks,
       icon: CheckCircle2,
       color: "text-success bg-success/10",
     },
     {
       label: "Pending Requests",
-      value: pendingRequests.length,
+      value: stats?.pendingRequests,
       icon: Users,
       color: "text-info bg-info/10",
     },
     {
       label: "Total Readers",
-      value: totalReaders,
+      value: stats?.totalReaders,
       icon: UserCheck,
       color: "text-secondary bg-secondary/10",
     },
   ];
-
-  const recentlyBorrowed = [...issuedBooks].slice(0, 5);
-  const recentReaders = [...dummyReaders]
-    .sort(
-      (a, b) =>
-        new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime(),
-    )
-    .slice(0, 5);
 
   return (
     <div>
@@ -70,7 +122,7 @@ export default function LibrarianDashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        {stats.map(({ label, value, icon: Icon, color }) => (
+        {statCards.map(({ label, value, icon: Icon, color }) => (
           <div
             key={label}
             className="card bg-base-100 border border-base-300 shadow-sm"
@@ -81,18 +133,20 @@ export default function LibrarianDashboardPage() {
               >
                 <Icon size={20} />
               </div>
-              <p className="text-2xl font-semibold mt-3">{value}</p>
+              {loading ? (
+                <div className="skeleton h-8 w-12 mt-3"></div>
+              ) : (
+                <p className="text-2xl font-semibold mt-3">{value}</p>
+              )}
               <p className="text-sm text-base-content/60">{label}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Main content + side panel */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: main (2/3) */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Recently Borrowed Books */}
+        {/* Recently Borrowed */}
+        <div className="lg:col-span-2">
           <div className="card bg-base-100 border border-base-300 shadow-sm">
             <div className="card-body">
               <div className="flex items-center justify-between mb-4">
@@ -107,13 +161,19 @@ export default function LibrarianDashboardPage() {
                 </Link>
               </div>
 
-              {recentlyBorrowed.length === 0 ? (
+              {loading ? (
+                <div className="flex flex-col gap-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="skeleton h-14 w-full"></div>
+                  ))}
+                </div>
+              ) : recent.length === 0 ? (
                 <p className="text-sm text-base-content/50 py-4 text-center">
                   Filhal koi book borrowed nahi hai.
                 </p>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {recentlyBorrowed.map((book) => (
+                  {recent.map((book) => (
                     <div
                       key={book.id}
                       className="flex items-center justify-between border-b border-base-300 last:border-0 pb-3 last:pb-0"
@@ -142,7 +202,7 @@ export default function LibrarianDashboardPage() {
                           </p>
                         </div>
                       </div>
-                      <span className="badge badge-warning px-1.5 py-1 badge-sm shrink-0">
+                      <span className="badge badge-warning badge-sm shrink-0">
                         {book.borrowedBy}
                       </span>
                     </div>
@@ -153,9 +213,9 @@ export default function LibrarianDashboardPage() {
           </div>
         </div>
 
-        {/* Right: side panel (1/3) — Pending Requests preview */}
+        {/* Pending Requests preview */}
         <div className="lg:col-span-1">
-          <div className="card bg-base-100 border border-base-300 shadow-sm sticky top-20">
+          <div className="card bg-base-100 border border-base-300 shadow-sm lg:sticky lg:top-20">
             <div className="card-body">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-display text-lg font-semibold">
@@ -163,35 +223,55 @@ export default function LibrarianDashboardPage() {
                 </h2>
                 <Link
                   href="/librarian/requests"
-                  className="text-sm text-primary flex items-center gap-1 hover:underline"
+                  className="text-sm text-primary hover:underline"
                 >
                   View All
                 </Link>
               </div>
 
-              {pendingRequests.length === 0 ? (
+              {loading ? (
+                <div className="flex flex-col gap-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="skeleton h-20 w-full"></div>
+                  ))}
+                </div>
+              ) : pending.length === 0 ? (
                 <p className="text-sm text-base-content/50 py-4 text-center">
                   Koi pending request nahi hai.
                 </p>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {pendingRequests.slice(0, 4).map((reader) => (
+                  {pending.slice(0, 4).map((r) => (
                     <div
-                      key={reader.id}
+                      key={r.id}
                       className="border border-base-300 rounded-field p-3"
                     >
                       <p className="font-medium text-sm truncate">
-                        {reader.fullName}
+                        {r.fullName}
                       </p>
                       <p className="text-xs text-base-content/50 truncate mb-2">
-                        {reader.email}
+                        {r.email}
                       </p>
                       <div className="flex items-center gap-2">
-                        <button className="btn btn-primary btn-sm flex-1">
-                          Approve
+                        <button
+                          className="btn btn-primary btn-xs flex-1 gap-1"
+                          onClick={() => handleApprove(r.id)}
+                          disabled={actionId === r.id}
+                        >
+                          {actionId === r.id ? (
+                            <span className="loading loading-spinner loading-xs"></span>
+                          ) : (
+                            <>
+                              <Check size={12} /> Approve
+                            </>
+                          )}
                         </button>
-                        <button className="btn btn-ghost btn-sm flex-1 border border-base-300">
-                          Reject
+                        <button
+                          className="btn btn-ghost btn-xs flex-1 border border-base-300"
+                          onClick={() => handleReject(r.id)}
+                          disabled={actionId === r.id}
+                        >
+                          <X size={12} /> Reject
                         </button>
                       </div>
                     </div>
