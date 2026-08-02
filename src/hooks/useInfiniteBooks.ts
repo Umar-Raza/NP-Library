@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getBooks } from "@/lib/api/books";
+import { getMyProfile } from "@/lib/api/auth";
 import { Book, SortOption } from "@/lib/types";
 
 export function useInfiniteBooks() {
@@ -10,6 +11,12 @@ export function useInfiniteBooks() {
   const [loadingMore, setLoadingMore] = useState(false); // scroll par agli load
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState("");
+
+  // Current logged-in user (borrow ke liye)
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    fullName: string;
+  } | null>(null);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -24,6 +31,13 @@ export function useInfiniteBooks() {
   }, [search]);
 
   const pageRef = useRef(0);
+
+  // Current user ek baar fetch
+  useEffect(() => {
+    getMyProfile().then((p) => {
+      if (p) setCurrentUser({ id: p.id, fullName: p.full_name });
+    });
+  }, []);
 
   // Jab bhi filter/search/sort badle → list reset, page 0 se dobara
   useEffect(() => {
@@ -72,7 +86,7 @@ export function useInfiniteBooks() {
     }
   }, [loadingMore, loading, hasMore, debouncedSearch, subject, sort]);
 
-  // Local list update helpers (delete/edit/add ke baad refetch se bachne ke liye)
+  // Local list update helpers (delete/edit/add/borrow ke baad refetch se bachne ke liye)
   const updateLocalBook = useCallback((updated: Book) => {
     setBooks((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
   }, []);
@@ -101,5 +115,6 @@ export function useInfiniteBooks() {
     updateLocalBook,
     removeLocalBook,
     prependLocalBook,
+    currentUser,
   };
 }

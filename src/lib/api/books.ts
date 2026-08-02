@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { Book } from "@/lib/types";
 
-// DB row shape (snake_case) — jaisa Supabase se aata hai
 interface BookRow {
   id: string;
   title_page: string | null;
@@ -14,9 +13,10 @@ interface BookRow {
   status: "available" | "borrowed";
   borrowed_by: string | null;
   created_at: string;
+  // latest borrow record (join) — current holder ki id
+  borrow_records?: { borrower_id: string | null; borrowed_at: string }[];
 }
 
-// Add/Edit ke liye input shape (camelCase — form se aata hai)
 export interface BookInput {
   titlePage: string;
   bookName: string;
@@ -27,8 +27,9 @@ export interface BookInput {
   bookLink: string;
 }
 
-// DB row → frontend Book
 function mapRowToBook(row: BookRow): Book {
+  // Latest borrow record = current holder (borrowed_at desc order se pehla)
+  const latest = row.borrow_records?.[0];
   return {
     id: row.id,
     titlePage: row.title_page ?? "",
@@ -40,11 +41,11 @@ function mapRowToBook(row: BookRow): Book {
     bookLink: row.book_link ?? "",
     status: row.status,
     borrowedBy: row.borrowed_by ?? undefined,
+    borrowedById: latest?.borrower_id ?? undefined,
     addedAt: row.created_at,
   };
 }
 
-// frontend input → DB columns
 function mapInputToRow(input: BookInput) {
   return {
     title_page: input.titlePage || null,
@@ -58,12 +59,12 @@ function mapInputToRow(input: BookInput) {
 }
 
 // ============================================
-// FETCH — pagination + server-side search/filter/sort
+// FETCH — pagination + search/filter/sort + current holder id
 // ============================================
 const PAGE_SIZE = 6;
 
 export interface GetBooksParams {
-  page: number; // 0-based
+  page: number;
   search?: string;
   subject?: string;
   sort?: "newest" | "oldest" | "title-az" | "title-za";
@@ -83,9 +84,11 @@ export async function getBooks(
   const from = page * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  let query = supabase.from("books").select("*", { count: "exact" });
+  // borrow_records join — latest borrower ki id ke liye
+  let query = supabase
+    .from("books")
+    .select("*, borrow_records(borrower_id, borrowed_at)", { count: "exact" });
 
-  // Search — book name / author / library code (case-insensitive)
   if (search.trim()) {
     const s = search.trim();
     query = query.or(
@@ -93,12 +96,10 @@ export async function getBooks(
     );
   }
 
-  // Subject filter
   if (subject) {
     query = query.eq("subject", subject);
   }
 
-  // Sort
   switch (sort) {
     case "oldest":
       query = query.order("created_at", { ascending: true });
@@ -109,11 +110,16 @@ export async function getBooks(
     case "title-za":
       query = query.order("book_name", { ascending: false });
       break;
-    default: // newest
+    default:
       query = query.order("created_at", { ascending: false });
   }
 
-  // Sirf is page ke 6 rows
+  // Latest borrow record pehle aaye (current holder)
+  query = query.order("borrowed_at", {
+    ascending: false,
+    foreignTable: "borrow_records",
+  });
+
   query = query.range(from, to);
 
   const { data, error, count } = await query;
@@ -135,7 +141,7 @@ export async function addBook(input: BookInput): Promise<Book> {
   const { data, error } = await supabase
     .from("books")
     .insert(mapInputToRow(input))
-    .select()
+    .select("*, borrow_records(borrower_id, borrowed_at)")
     .single();
 
   if (error) {
@@ -152,7 +158,7 @@ export async function updateBook(id: string, input: BookInput): Promise<Book> {
     .from("books")
     .update(mapInputToRow(input))
     .eq("id", id)
-    .select()
+    .select("*, borrow_records(borrower_id, borrowed_at)")
     .single();
 
   if (error) {
@@ -170,5 +176,33 @@ export async function deleteBook(id: string): Promise<void> {
   if (error) {
     console.error("deleteBook error:", error.message);
     throw new Error("Book delete nahi ho saki.");
+  }
+}
+
+// ---- BORROW / TRANSFER ----
+export async function borrowBook(
+  bookId: string,
+  borrowerName: string,
+  borrowerId?: string,
+): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("borrow_book", {
+    p_book_id: bookId,
+    p_borrower_name: borrowerName,
+    p_borrower_id: borrowerId ?? null,
+  });
+  if (error) {
+    console.error("borrowBook error:", error.message);
+    throw new Error("Borrow nahi ho saka.");
+  }
+}
+
+// ---- RETURN (librarian only) ----
+export async function returnBook(bookId: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("return_book", { p_book_id: bookId });
+  if (error) {
+    console.error("returnBook error:", error.message);
+    throw new Error(error.message);
   }
 }

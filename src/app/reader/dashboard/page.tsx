@@ -7,7 +7,8 @@ import BookRow from "@/components/books/BookRow";
 import BooksSkeleton from "@/components/books/BooksSkeleton";
 import { useInfiniteBooks } from "@/hooks/useInfiniteBooks";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { ViewMode } from "@/lib/types";
+import { borrowBook } from "@/lib/api/books";
+import { Book, ViewMode } from "@/lib/types";
 
 export default function ReaderDashboardPage() {
   const {
@@ -23,9 +24,12 @@ export default function ReaderDashboardPage() {
     sort,
     setSort,
     loadMore,
+    updateLocalBook,
+    currentUser,
   } = useInfiniteBooks();
 
   const [view, setView] = useState<ViewMode>("grid");
+  const [borrowingId, setBorrowingId] = useState<string | null>(null);
   const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loading);
 
   const subjects = useMemo(
@@ -33,10 +37,60 @@ export default function ReaderDashboardPage() {
     [books],
   );
 
-  // Favorites — filhal local (Supabase favorites baad mein connect honge)
   const handleToggleFavorite = (id: string) => {
-    // TODO: Supabase favorites connect hone par yahan real call
-    console.log("toggle favorite:", id);
+    console.log("toggle favorite:", id); // Supabase favorites baad mein
+  };
+
+  const handleBorrow = async (book: Book) => {
+    console.log("BORROW CLICKED:", book.bookName, "user:", currentUser); // ← ye add karein
+
+    if (!currentUser) return;
+    setBorrowingId(book.id);
+    try {
+      await borrowBook(book.id, currentUser.fullName, currentUser.id);
+      // Local update — book ab mere naam par
+      updateLocalBook({
+        ...book,
+        status: "borrowed",
+        borrowedBy: currentUser.fullName,
+        borrowedById: currentUser.id,
+      });
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Borrow fail ho gaya.");
+    } finally {
+      setBorrowingId(null);
+    }
+  };
+
+  // Borrow button banane wali logic (disable rules)
+  const renderBorrowAction = (book: Book) => {
+    const isCurrentHolder =
+      book.borrowedById && currentUser && book.borrowedById === currentUser.id;
+    if (isCurrentHolder) {
+      // Main current holder hoon → disabled, mera naam
+      return (
+        <button className="btn btn-sm btn-disabled" disabled>
+          Aap ke paas
+        </button>
+      );
+    }
+
+    // Available ya kisi aur ke paas → borrow kar sakta hoon
+    return (
+      <button
+        className="btn btn-primary btn-sm"
+        onClick={() => handleBorrow(book)}
+        disabled={borrowingId === book.id}
+      >
+        {borrowingId === book.id ? (
+          <span className="loading loading-spinner loading-xs"></span>
+        ) : book.status === "borrowed" ? (
+          `Borrow (${book.borrowedBy})`
+        ) : (
+          "Borrow"
+        )}
+      </button>
+    );
   };
 
   return (
@@ -74,11 +128,7 @@ export default function ReaderDashboardPage() {
                   index={i + 1}
                   showDownload={true}
                   onToggleFavorite={handleToggleFavorite}
-                  actions={
-                    book.status === "available" ? (
-                      <button className="btn btn-primary btn-sm">Borrow</button>
-                    ) : null
-                  }
+                  actions={renderBorrowAction(book)}
                 />
               ))}
             </div>
@@ -91,11 +141,7 @@ export default function ReaderDashboardPage() {
                   index={i + 1}
                   showDownload={true}
                   onToggleFavorite={handleToggleFavorite}
-                  actions={
-                    book.status === "available" ? (
-                      <button className="btn btn-primary btn-sm">Borrow</button>
-                    ) : null
-                  }
+                  actions={renderBorrowAction(book)}
                 />
               ))}
             </div>

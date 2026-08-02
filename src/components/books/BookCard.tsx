@@ -70,18 +70,20 @@ export default function BookCard({
             </div>
           </div>
 
-          {/* Bottom actions row — flex-wrap so nothing overlaps on mobile */}
+          {/* Bottom actions row */}
           <div className="flex flex-wrap items-center justify-between gap-2 mt-auto pt-3">
-            {/* Left: Borrow / borrower name / Available */}
+            {/* Left: reader → actions (button); librarian → status badge */}
             <div className="min-w-0 shrink-0">
-              {book.status === "borrowed" ? (
-                <span className="badge badge-warning font-medium truncate max-w-full">
-                  {book.borrowedBy}
-                </span>
-              ) : showAvailableStatus ? (
-                <span className="btn btn-outline btn-success btn-sm pointer-events-none">
-                  Available
-                </span>
+              {showAvailableStatus ? (
+                book.status === "borrowed" ? (
+                  <span className="badge badge-warning font-medium truncate max-w-full">
+                    {book.borrowedBy}
+                  </span>
+                ) : (
+                  <span className="btn btn-outline btn-success btn-sm pointer-events-none">
+                    Available
+                  </span>
+                )
               ) : (
                 actions
               )}

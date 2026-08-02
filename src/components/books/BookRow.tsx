@@ -18,18 +18,20 @@ export default function BookRow({
   showAvailableStatus?: boolean;
   onToggleFavorite?: (id: string) => void;
 }) {
-  const leftStatus =
+  // Left slot: reader → button (actions); librarian → status badge
+  const leftStatus = showAvailableStatus ? (
     book.status === "borrowed" ? (
       <span className="badge badge-warning font-medium truncate max-w-full">
         {book.borrowedBy}
       </span>
-    ) : showAvailableStatus ? (
+    ) : (
       <span className="btn btn-outline btn-success btn-sm pointer-events-none">
         Available
       </span>
-    ) : (
-      actions
-    );
+    )
+  ) : (
+    actions
+  );
 
   const rightActions = (
     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -78,7 +80,7 @@ export default function BookRow({
         </span>
       </div>
 
-      {/* Main Content — NOTE: overflow-hidden hata diya taake kuch clip na ho */}
+      {/* Main Content */}
       <div className="flex-1 min-w-0 max-w-full p-3 sm:p-4 md:p-5 lg:p-0 flex flex-col lg:flex-row lg:items-center gap-2.5 sm:gap-4 lg:gap-6 justify-center">
         {/* Title & Author */}
         <div className="flex items-center gap-3 lg:w-[240px] xl:w-[280px] shrink-0 min-w-0 max-w-full">
@@ -123,9 +125,9 @@ export default function BookRow({
           </div>
         </div>
 
-        {/* Status (left) + Actions (right) — no overflow-hidden, flex-wrap safe */}
+        {/* Status (left) + Actions (right) */}
         <div className="flex flex-row flex-wrap items-center justify-between gap-3 sm:gap-4 lg:w-auto lg:min-w-[240px] shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-base-200 w-full max-w-full">
-          <div className="min-w-0 shrink-0">{leftStatus}</div>
+          <div className="min-w-0">{leftStatus}</div>
           {rightActions}
         </div>
       </div>

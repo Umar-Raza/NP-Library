@@ -21,7 +21,6 @@ export async function uploadTitlePage(file: File): Promise<string> {
     `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
     { method: "POST", body: formData },
   );
-
   if (!res.ok) {
     throw new Error("Image upload fail ho gaya. Dobara koshish karein.");
   }
