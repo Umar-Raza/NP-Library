@@ -1,46 +1,69 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Search } from "lucide-react";
 import IssuedBookRow from "@/components/books/IssuedBookRow";
-import { dummyIssuedBooks } from "@/lib/dummy-issued";
+import { getIssuedBooks } from "@/lib/api/books";
+import { Book } from "@/lib/types";
 
 export default function ReaderIssuedBooksPage() {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
 
-  const filtered = useMemo(() => {
-    return dummyIssuedBooks.filter(
-      (b) =>
-        b.bookName.toLowerCase().includes(search.toLowerCase()) ||
-        (b.borrowedBy?.toLowerCase().includes(search.toLowerCase()) ?? false),
-    );
+  // debounce search
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(search), 400);
+    return () => clearTimeout(t);
   }, [search]);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    getIssuedBooks(debounced)
+      .then(setBooks)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [debounced]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
     <div>
       <h1 className="text-2xl font-display font-semibold mb-6">Issued Books</h1>
 
-      <label className="input input-bordered flex items-center gap-2 mb-6 max-w-md">
-        <Search size={18} className="text-base-content/40" />
+      <div className="flex items-center gap-2 mb-6 max-w-md border-2 border-base-300 rounded-lg px-3.5 py-2.5 bg-base-100 focus-within:border-primary transition-colors">
+        <Search size={18} className="text-base-content/40 shrink-0" />
         <input
           type="text"
-          className="grow"
+          className="flex-1 min-w-0 bg-transparent outline-none text-sm"
           placeholder="Book ya borrower ka naam search karein..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-      </label>
-
-      <div className="flex flex-col gap-3">
-        {filtered.map((book, i) => (
-          <IssuedBookRow key={book.id} book={book} index={i + 1} />
-        ))}
       </div>
 
-      {filtered.length === 0 && (
+      {loading ? (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="skeleton h-20 w-full rounded-box"></div>
+          ))}
+        </div>
+      ) : error ? (
+        <p className="text-center text-error py-20">{error}</p>
+      ) : books.length === 0 ? (
         <p className="text-center text-base-content/50 py-10">
           Filhal koi book issue nahi hai.
         </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {books.map((book, i) => (
+            <IssuedBookRow key={book.id} book={book} index={i + 1} />
+          ))}
+        </div>
       )}
     </div>
   );

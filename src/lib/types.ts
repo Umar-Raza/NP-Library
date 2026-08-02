@@ -13,6 +13,7 @@ export interface Book {
   bookLink: string;
   status: BookStatus;
   borrowedBy?: string;
+  borrowedAt?: string; // current holder ne kab borrow kiya
   borrowedById?: string; // ← ye add karein
   addedAt: string; // ISO date, sorting ke liye
   borrowChain?: BorrowChainEntry[]; // hand-to-hand transfer history

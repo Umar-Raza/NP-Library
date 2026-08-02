@@ -206,3 +206,42 @@ export async function returnBook(bookId: string): Promise<void> {
     throw new Error(error.message);
   }
 }
+
+// ---- ISSUED BOOKS (saari borrowed books) ----
+export async function getIssuedBooks(search = ""): Promise<Book[]> {
+  const supabase = createClient();
+
+  let query = supabase
+    .from("books")
+    .select("*, borrow_records(borrower_id, borrowed_at)")
+    .eq("status", "borrowed")
+    .order("borrowed_at", { ascending: false, foreignTable: "borrow_records" });
+
+  if (search.trim()) {
+    const s = search.trim();
+    query = query.or(`book_name.ilike.%${s}%,borrowed_by.ilike.%${s}%`);
+  }
+
+  const { data, error } = await query.order("book_name", { ascending: true });
+
+  if (error) {
+    console.error("getIssuedBooks error:", error.message);
+    throw new Error("Issued books load nahi ho saki.");
+  }
+
+  return (data as any[]).map((row) => ({
+    id: row.id,
+    titlePage: row.title_page ?? "",
+    bookName: row.book_name,
+    authorName: row.author_name,
+    subject: row.subject,
+    maktaba: row.maktaba,
+    libraryCode: row.library_code,
+    bookLink: row.book_link ?? "",
+    status: row.status,
+    borrowedBy: row.borrowed_by ?? undefined,
+    borrowedById: row.borrow_records?.[0]?.borrower_id ?? undefined,
+    borrowedAt: row.borrow_records?.[0]?.borrowed_at ?? undefined,
+    addedAt: row.created_at,
+  }));
+}

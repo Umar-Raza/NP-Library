@@ -1,80 +1,101 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Search } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Search, RotateCcw } from "lucide-react";
 import IssuedBookRow from "@/components/books/IssuedBookRow";
-import { dummyBooks } from "@/lib/dummy-books";
+import { getIssuedBooks, returnBook } from "@/lib/api/books";
 import { Book } from "@/lib/types";
 
 export default function LibrarianIssuedBooksPage() {
-  const [books, setBooks] = useState<Book[]>(dummyBooks);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [returningId, setReturningId] = useState<string | null>(null);
 
-  const issued = useMemo(
-    () => books.filter((b) => b.status === "borrowed"),
-    [books],
-  );
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const filtered = useMemo(() => {
-    return issued.filter(
-      (b) =>
-        b.bookName.toLowerCase().includes(search.toLowerCase()) ||
-        (b.borrowedBy?.toLowerCase().includes(search.toLowerCase()) ?? false),
-    );
-  }, [issued, search]);
+  const load = useCallback(() => {
+    setLoading(true);
+    getIssuedBooks(debounced)
+      .then(setBooks)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [debounced]);
 
-  const handleReturn = (id: string) => {
-    setBooks((prev) =>
-      prev.map((b) =>
-        b.id === id
-          ? {
-              ...b,
-              status: "available",
-              borrowedBy: undefined,
-              borrowChain: [],
-            }
-          : b,
-      ),
-    );
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const handleReturn = async (book: Book) => {
+    setReturningId(book.id);
+    try {
+      await returnBook(book.id);
+      setBooks((prev) => prev.filter((b) => b.id !== book.id)); // list se hat jaye
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Return fail ho gaya.");
+    } finally {
+      setReturningId(null);
+    }
   };
 
   return (
     <div>
       <h1 className="text-2xl font-display font-semibold mb-6">Issued Books</h1>
 
-      <label className="input input-bordered flex items-center gap-2 mb-6 max-w-md">
-        <Search size={18} className="text-base-content/40" />
+      <div className="flex items-center gap-2 mb-6 max-w-md border-2 border-base-300 rounded-lg px-3.5 py-2.5 bg-base-100 focus-within:border-primary transition-colors">
+        <Search size={18} className="text-base-content/40 shrink-0" />
         <input
           type="text"
-          className="grow"
+          className="flex-1 min-w-0 bg-transparent outline-none text-sm"
           placeholder="Book ya borrower ka naam search karein..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-      </label>
-
-      <div className="flex flex-col gap-3">
-        {filtered.map((book, i) => (
-          <IssuedBookRow
-            key={book.id}
-            book={book}
-            index={i + 1}
-            actions={
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() => handleReturn(book.id)}
-              >
-                Return
-              </button>
-            }
-          />
-        ))}
       </div>
 
-      {filtered.length === 0 && (
+      {loading ? (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="skeleton h-20 w-full rounded-box"></div>
+          ))}
+        </div>
+      ) : error ? (
+        <p className="text-center text-error py-20">{error}</p>
+      ) : books.length === 0 ? (
         <p className="text-center text-base-content/50 py-10">
           Filhal koi book issue nahi hai.
         </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {books.map((book, i) => (
+            <IssuedBookRow
+              key={book.id}
+              book={book}
+              index={i + 1}
+              actions={
+                <button
+                  className="btn btn-ghost btn-sm border border-base-300 gap-1"
+                  onClick={() => handleReturn(book)}
+                  disabled={returningId === book.id}
+                >
+                  {returningId === book.id ? (
+                    <span className="loading loading-spinner loading-xs"></span>
+                  ) : (
+                    <>
+                      <RotateCcw size={14} />
+                      <span className="hidden sm:inline">Return</span>
+                    </>
+                  )}
+                </button>
+              }
+            />
+          ))}
+        </div>
       )}
     </div>
   );
