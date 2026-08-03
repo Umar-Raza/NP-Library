@@ -69,7 +69,7 @@ export default function ReaderDashboardPage() {
         isFav ? next.add(id) : next.delete(id);
         return next;
       });
-      toast(e instanceof Error ? e.message : "Fail.", "warning");
+      toast(e instanceof Error ? e.message : "Fail.", "error");
     }
   };
 
@@ -84,6 +84,7 @@ export default function ReaderDashboardPage() {
         borrowedBy: currentUser.fullName,
         borrowedById: currentUser.id,
       });
+      toast("Book borrowed successfully.", "success");
     } catch (e) {
       toast(e instanceof Error ? e.message : "Borrow fail ho gaya.", "error");
     } finally {

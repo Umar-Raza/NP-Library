@@ -5,7 +5,7 @@ import { Search, RotateCcw } from "lucide-react";
 import IssuedBookRow from "@/components/books/IssuedBookRow";
 import { getIssuedBooks, returnBook } from "@/lib/api/books";
 import { Book } from "@/lib/types";
-
+import { useToast } from "@/components/ui/ToastProvider";
 export default function LibrarianIssuedBooksPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,7 +13,7 @@ export default function LibrarianIssuedBooksPage() {
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [returningId, setReturningId] = useState<string | null>(null);
-
+  const toast = useToast();
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 400);
     return () => clearTimeout(t);
@@ -35,9 +35,10 @@ export default function LibrarianIssuedBooksPage() {
     setReturningId(book.id);
     try {
       await returnBook(book.id);
-      setBooks((prev) => prev.filter((b) => b.id !== book.id)); // list se hat jaye
+      setBooks((prev) => prev.filter((b) => b.id !== book.id));
+      toast("Book returned successfully.", "success");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Return fail ho gaya.");
+      toast(e instanceof Error ? e.message : "Failed to return book.", "error");
     } finally {
       setReturningId(null);
     }

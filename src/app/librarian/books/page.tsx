@@ -8,6 +8,7 @@ import BookRow from "@/components/books/BookRow";
 import BookFormModal from "@/components/books/BookFormModal";
 import AssignModal from "@/components/books/AssignModal";
 import BooksSkeleton from "@/components/books/BooksSkeleton";
+import { useToast } from "@/components/ui/ToastProvider";
 import AdminMenu from "@/components/books/AdminMenu";
 import { useInfiniteBooks } from "@/hooks/useInfiniteBooks";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
@@ -38,7 +39,7 @@ export default function LibrarianBooksPage() {
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [assignBook, setAssignBook] = useState<Book | null>(null);
   const [returningId, setReturningId] = useState<string | null>(null);
-
+  const toast = useToast();
   const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loading);
   const subjects = useMemo(
     () => [...new Set(books.map((b) => b.subject))],
@@ -60,8 +61,9 @@ export default function LibrarianBooksPage() {
     try {
       await deleteBook(id);
       removeLocalBook(id);
+      toast("Book deleted successfully.", "success");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Delete fail ho gaya.");
+      toast(e instanceof Error ? e.message : "Failed to delete book.", "error");
     }
   };
 
@@ -73,13 +75,18 @@ export default function LibrarianBooksPage() {
   // Assign — modal se aayega (registered ya guest)
   const handleAssign = async (borrowerName: string, borrowerId?: string) => {
     if (!assignBook) return;
-    await borrowBook(assignBook.id, borrowerName, borrowerId);
-    updateLocalBook({
-      ...assignBook,
-      status: "borrowed",
-      borrowedBy: borrowerName,
-      borrowedById: borrowerId,
-    });
+    try {
+      await borrowBook(assignBook.id, borrowerName, borrowerId);
+      updateLocalBook({
+        ...assignBook,
+        status: "borrowed",
+        borrowedBy: borrowerName,
+        borrowedById: borrowerId,
+      });
+      toast("Book assigned successfully.", "success");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Failed to assign book.", "error");
+    }
   };
 
   // Return — book wapis, chain clear
@@ -93,8 +100,9 @@ export default function LibrarianBooksPage() {
         borrowedBy: undefined,
         borrowedById: undefined,
       });
+      toast("Book returned successfully.", "success");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Return fail ho gaya.");
+      toast(e instanceof Error ? e.message : "Failed to return book.", "error");
     } finally {
       setReturningId(null);
     }

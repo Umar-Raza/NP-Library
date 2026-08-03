@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-// import { Search, Check, X, Mail, Phone, Calendar } from "lucide-react";
 import { Search, Check, X, Mail, Phone, Calendar, Ban } from "lucide-react";
+import { useToast } from "@/components/ui/ToastProvider";
 import {
   getPendingReaders,
   getApprovedReaderProfiles,
   approveReader,
   rejectReader,
   revokeReader,
-  ReaderProfile,
   ReaderProfile,
 } from "@/lib/api/readers";
 
@@ -24,7 +23,7 @@ export default function RequestsPage() {
   const [error, setError] = useState("");
   const [actionId, setActionId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-
+  const toast = useToast();
   const load = useCallback(() => {
     setLoading(true);
     Promise.all([getPendingReaders(), getApprovedReaderProfiles()])
@@ -48,8 +47,12 @@ export default function RequestsPage() {
       setPending((prev) => prev.filter((r) => r.id !== id));
       if (reader)
         setApproved((prev) => [{ ...reader, status: "approved" }, ...prev]);
+      toast("Reader approved successfully.", "success");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Approve fail ho gaya.");
+      toast(
+        e instanceof Error ? e.message : "Failed to approve reader.",
+        "error",
+      );
     } finally {
       setActionId(null);
     }
@@ -61,8 +64,12 @@ export default function RequestsPage() {
     try {
       await rejectReader(id);
       setPending((prev) => prev.filter((r) => r.id !== id));
+      toast("Reader rejected successfully.", "success");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Reject fail ho gaya.");
+      toast(
+        e instanceof Error ? e.message : "Failed to reject reader.",
+        "error",
+      );
     } finally {
       setActionId(null);
     }
@@ -79,13 +86,16 @@ export default function RequestsPage() {
     setActionId(id);
     try {
       await revokeReader(id);
-      // Approved list se hata kar pending mein daal dein
       const reader = approved.find((r) => r.id === id);
       setApproved((prev) => prev.filter((r) => r.id !== id));
       if (reader)
         setPending((prev) => [{ ...reader, status: "pending" }, ...prev]);
+      toast("Reader revoked successfully.", "success");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Revoke fail ho gaya.");
+      toast(
+        e instanceof Error ? e.message : "Failed to revoke reader.",
+        "error",
+      );
     } finally {
       setActionId(null);
     }

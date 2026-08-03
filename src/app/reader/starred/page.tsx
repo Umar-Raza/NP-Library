@@ -8,11 +8,13 @@ import { getMyFavoriteBooks, toggleFavorite } from "@/lib/api/favorites";
 import { borrowBook } from "@/lib/api/books";
 import { getMyProfile } from "@/lib/api/auth";
 import { Book } from "@/lib/types";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function StarredPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [borrowingId, setBorrowingId] = useState<string | null>(null);
+  const toast = useToast();
   const [currentUser, setCurrentUser] = useState<{
     id: string;
     fullName: string;
@@ -53,8 +55,9 @@ export default function StarredPage() {
             : b,
         ),
       );
+      toast("Book borrowed successfully.", "success");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Borrow fail ho gaya.");
+      toast(e instanceof Error ? e.message : "Failed to borrow.", "error");
     } finally {
       setBorrowingId(null);
     }

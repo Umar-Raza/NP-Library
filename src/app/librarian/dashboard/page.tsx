@@ -24,14 +24,14 @@ import {
   ReaderProfile,
 } from "@/lib/api/readers";
 import { Book } from "@/lib/types";
-
+import { useToast } from "@/components/ui/ToastProvider";
 export default function LibrarianDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recent, setRecent] = useState<Book[]>([]);
   const [pending, setPending] = useState<ReaderProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
-
+  const toast = useToast();
   useEffect(() => {
     Promise.all([
       getDashboardStats(),
@@ -59,8 +59,12 @@ export default function LibrarianDashboardPage() {
             totalReaders: s.totalReaders + 1,
           },
       );
+      toast("Reader approved successfully.", "success");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Approve fail.");
+      toast(
+        e instanceof Error ? e.message : "Failed to approve reader.",
+        "error",
+      );
     } finally {
       setActionId(null);
     }
@@ -73,8 +77,12 @@ export default function LibrarianDashboardPage() {
       await rejectReader(id);
       setPending((prev) => prev.filter((r) => r.id !== id));
       setStats((s) => s && { ...s, pendingRequests: s.pendingRequests - 1 });
+      toast("Reader rejected successfully.", "success");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Reject fail.");
+      toast(
+        e instanceof Error ? e.message : "Failed to reject reader.",
+        "error",
+      );
     } finally {
       setActionId(null);
     }

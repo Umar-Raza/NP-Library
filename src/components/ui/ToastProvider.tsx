@@ -32,19 +32,19 @@ export function useToast() {
 const config: Record<ToastType, { icon: ReactNode; classes: string }> = {
   success: {
     icon: <CheckCircle2 size={18} />,
-    classes: "border-success/30 bg-success/10 text-success",
+    classes: "border-success/40 bg-success/20 text-success",
   },
   error: {
     icon: <XCircle size={18} />,
-    classes: "border-error/30 bg-error/10 text-error",
+    classes: "border-error/40 bg-error/20 text-error",
   },
   info: {
     icon: <Info size={18} />,
-    classes: "border-info/30 bg-info/10 text-info",
+    classes: "border-info/40 bg-info/20 text-info",
   },
   warning: {
     icon: <AlertTriangle size={18} />,
-    classes: "border-warning/30 bg-warning/10 text-warning",
+    classes: "border-warning/40 bg-warning/20 text-warning",
   },
 };
 
