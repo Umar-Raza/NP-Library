@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import SearchFilterBar from "@/components/books/SearchFilterBar";
 import BookCard from "@/components/books/BookCard";
 import BookRow from "@/components/books/BookRow";
@@ -8,7 +8,9 @@ import BooksSkeleton from "@/components/books/BooksSkeleton";
 import { useInfiniteBooks } from "@/hooks/useInfiniteBooks";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { borrowBook } from "@/lib/api/books";
+import { getMyFavoriteIds, toggleFavorite } from "@/lib/api/favorites";
 import { Book, ViewMode } from "@/lib/types";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function ReaderDashboardPage() {
   const {
@@ -30,25 +32,52 @@ export default function ReaderDashboardPage() {
 
   const [view, setView] = useState<ViewMode>("grid");
   const [borrowingId, setBorrowingId] = useState<string | null>(null);
+  const [favIds, setFavIds] = useState<Set<string>>(new Set());
   const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loading);
+  const toast = useToast();
 
   const subjects = useMemo(
     () => [...new Set(books.map((b) => b.subject))],
     [books],
   );
 
-  const handleToggleFavorite = (id: string) => {
-    console.log("toggle favorite:", id); // Supabase favorites baad mein
+  useEffect(() => {
+    getMyFavoriteIds().then(setFavIds);
+  }, []);
+
+  const handleToggleFavorite = async (id: string) => {
+    const isFav = favIds.has(id);
+
+    // Add se pehle limit check (UI level)
+    if (!isFav && favIds.size >= 25) {
+      toast("You can only favorite 25 books at a time.", "warning");
+      return;
+    }
+
+    // Optimistic update
+    setFavIds((prev) => {
+      const next = new Set(prev);
+      isFav ? next.delete(id) : next.add(id);
+      return next;
+    });
+    try {
+      await toggleFavorite(id, isFav);
+    } catch (e) {
+      // Fail par revert
+      setFavIds((prev) => {
+        const next = new Set(prev);
+        isFav ? next.add(id) : next.delete(id);
+        return next;
+      });
+      toast(e instanceof Error ? e.message : "Fail.", "warning");
+    }
   };
 
   const handleBorrow = async (book: Book) => {
-    console.log("BORROW CLICKED:", book.bookName, "user:", currentUser); // ← ye add karein
-
     if (!currentUser) return;
     setBorrowingId(book.id);
     try {
       await borrowBook(book.id, currentUser.fullName, currentUser.id);
-      // Local update — book ab mere naam par
       updateLocalBook({
         ...book,
         status: "borrowed",
@@ -56,18 +85,17 @@ export default function ReaderDashboardPage() {
         borrowedById: currentUser.id,
       });
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Borrow fail ho gaya.");
+      toast(e instanceof Error ? e.message : "Borrow fail ho gaya.", "error");
     } finally {
       setBorrowingId(null);
     }
   };
 
-  // Borrow button banane wali logic (disable rules)
   const renderBorrowAction = (book: Book) => {
     const isCurrentHolder =
       book.borrowedById && currentUser && book.borrowedById === currentUser.id;
+
     if (isCurrentHolder) {
-      // Main current holder hoon → disabled, mera naam
       return (
         <button className="btn btn-sm btn-disabled" disabled>
           Aap ke paas
@@ -75,7 +103,6 @@ export default function ReaderDashboardPage() {
       );
     }
 
-    // Available ya kisi aur ke paas → borrow kar sakta hoon
     return (
       <button
         className="btn btn-primary btn-sm"
@@ -124,7 +151,7 @@ export default function ReaderDashboardPage() {
               {books.map((book, i) => (
                 <BookCard
                   key={book.id}
-                  book={book}
+                  book={{ ...book, isFavorite: favIds.has(book.id) }}
                   index={i + 1}
                   showDownload={true}
                   onToggleFavorite={handleToggleFavorite}
@@ -137,7 +164,7 @@ export default function ReaderDashboardPage() {
               {books.map((book, i) => (
                 <BookRow
                   key={book.id}
-                  book={book}
+                  book={{ ...book, isFavorite: favIds.has(book.id) }}
                   index={i + 1}
                   showDownload={true}
                   onToggleFavorite={handleToggleFavorite}
