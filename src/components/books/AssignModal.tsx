@@ -44,14 +44,14 @@ export default function AssignModal({
     if (mode === "registered") {
       const reader = readers.find((r) => r.id === selectedReaderId);
       if (!reader) {
-        setError("Reader select karein.");
+        setError("Please select a reader.");
         return;
       }
       name = reader.fullName;
       id = reader.id;
     } else {
       if (!guestName.trim()) {
-        setError("Naam likhein.");
+        setError("Please enter a name.");
         return;
       }
       name = guestName.trim();
@@ -127,14 +127,14 @@ export default function AssignModal({
           {mode === "registered" ? (
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Reader select karein</span>
+                <span className="label-text">Please select a reader.</span>
               </label>
               <select
                 className="select w-full border-2 border-base-300 rounded-lg focus:border-primary outline-none"
                 value={selectedReaderId}
                 onChange={(e) => setSelectedReaderId(e.target.value)}
               >
-                <option value="">— Reader choose karein —</option>
+                <option value="">— Please select a reader —</option>
                 {readers.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.fullName}
@@ -145,7 +145,7 @@ export default function AssignModal({
           ) : (
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Person ka naam</span>
+                <span className="label-text">Reader name</span>
               </label>
               <input
                 type="text"

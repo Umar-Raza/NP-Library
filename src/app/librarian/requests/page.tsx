@@ -159,7 +159,7 @@ export default function RequestsPage() {
         // ===== Requests tab =====
         pending.length === 0 ? (
           <p className="text-center text-base-content/50 py-10">
-            Koi pending request nahi hai.
+            No pending requests.
           </p>
         ) : (
           <div className="flex flex-col gap-3">
@@ -211,7 +211,7 @@ export default function RequestsPage() {
                     )}
                   </button>
                   <button
-                    className="btn btn-ghost btn-sm gap-1 border border-base-300 text-error"
+                    className="btn btn-ghost btn-sm gap-1 border border-base-300 text-error hover:bg-error/10"
                     onClick={() => handleReject(r.id)}
                     disabled={actionId === r.id}
                   >

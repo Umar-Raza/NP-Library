@@ -110,7 +110,7 @@ export default function BookFormModal({
       onClose();
     } catch (err) {
       setUploading(false);
-      setError(err instanceof Error ? err.message : "Save fail ho gaya.");
+      setError(err instanceof Error ? err.message : "Save failed.");
     } finally {
       setSaving(false);
     }
@@ -298,7 +298,7 @@ export default function BookFormModal({
               {busy ? (
                 <>
                   <span className="loading loading-spinner loading-sm"></span>
-                  {uploading ? "Image upload ho rahi..." : "Save ho raha..."}
+                  {uploading ? "Uploading image..." : "Saving..."}
                 </>
               ) : initialData ? (
                 "Save Changes"

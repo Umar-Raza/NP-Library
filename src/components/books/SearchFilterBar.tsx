@@ -2,7 +2,8 @@
 
 import { Search, LayoutGrid, List } from "lucide-react";
 import { ViewMode, SortOption } from "@/lib/types";
-
+import SubjectFilter from "./SubjectFilter";
+import SortFilter from "./SortFilter";
 export default function SearchFilterBar({
   search,
   onSearchChange,
@@ -37,29 +38,13 @@ export default function SearchFilterBar({
         />
       </div>
 
-      <select
-        className="border-2 border-base-300 rounded-lg px-3.5 py-2.5 bg-base-100 text-sm outline-none focus:border-primary transition-colors w-full lg:w-48"
-        value={subject}
-        onChange={(e) => onSubjectChange(e.target.value)}
-      >
-        <option value="">Sab Subjects</option>
-        {subjects.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
+      <SubjectFilter
+        subject={subject}
+        onSubjectChange={onSubjectChange}
+        subjects={subjects}
+      />
 
-      <select
-        className="border-2 border-base-300 rounded-lg px-3.5 py-2.5 bg-base-100 text-sm outline-none focus:border-primary transition-colors w-full lg:w-44"
-        value={sort}
-        onChange={(e) => onSortChange(e.target.value as SortOption)}
-      >
-        <option value="newest">Newest First</option>
-        <option value="oldest">Oldest First</option>
-        <option value="title-az">Title A-Z</option>
-        <option value="title-za">Title Z-A</option>
-      </select>
+      <SortFilter sort={sort} onSortChange={onSortChange} />
 
       <div className="join">
         <button

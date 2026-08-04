@@ -80,7 +80,7 @@ export default function LibrarianIssuedBooksPage() {
               index={i + 1}
               actions={
                 <button
-                  className="btn btn-ghost btn-sm border border-base-300 gap-1"
+                  className="btn btn-ghost text-error btn-sm border border-base-300 gap-1 hover:bg-error/10"
                   onClick={() => handleReturn(book)}
                   disabled={returningId === book.id}
                 >

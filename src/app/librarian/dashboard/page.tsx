@@ -210,7 +210,7 @@ export default function LibrarianDashboardPage() {
                           </p>
                         </div>
                       </div>
-                      <span className="badge badge-warning badge-sm shrink-0">
+                      <span className="badge badge-warning badge-sm shrink-0 py-1 px-2">
                         {book.borrowedBy}
                       </span>
                     </div>
@@ -231,12 +231,11 @@ export default function LibrarianDashboardPage() {
                 </h2>
                 <Link
                   href="/librarian/requests"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-primary hover:underline flex items-center gap-1"
                 >
-                  View All
+                  View All <ArrowRight size={14} />
                 </Link>
               </div>
-
               {loading ? (
                 <div className="flex flex-col gap-3">
                   {Array.from({ length: 3 }).map((_, i) => (
@@ -262,7 +261,7 @@ export default function LibrarianDashboardPage() {
                       </p>
                       <div className="flex items-center gap-2">
                         <button
-                          className="btn btn-primary btn-xs flex-1 gap-1"
+                          className="btn btn-primary btn-sm flex-1 gap-1"
                           onClick={() => handleApprove(r.id)}
                           disabled={actionId === r.id}
                         >
@@ -275,7 +274,7 @@ export default function LibrarianDashboardPage() {
                           )}
                         </button>
                         <button
-                          className="btn btn-ghost btn-xs flex-1 border border-base-300"
+                          className="btn btn-ghost btn-sm flex-1 border border-base-300"
                           onClick={() => handleReject(r.id)}
                           disabled={actionId === r.id}
                         >

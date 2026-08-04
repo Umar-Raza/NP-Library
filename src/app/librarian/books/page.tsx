@@ -120,7 +120,7 @@ export default function LibrarianBooksPage() {
         </button>
       ) : (
         <button
-          className="btn btn-ghost btn-sm btn-square border border-base-300"
+          className="btn btn-ghost text-error btn-sm btn-square border border-base-300 hover:bg-error/10"
           title="Return"
           onClick={() => handleReturn(book)}
           disabled={returningId === book.id}
@@ -143,7 +143,10 @@ export default function LibrarianBooksPage() {
     <div>
       <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <h1 className="text-2xl font-display font-semibold">Books</h1>
-        <button className="btn btn-primary gap-2" onClick={handleAddClick}>
+        <button
+          className="btn btn-primary gap-2 shadow-md"
+          onClick={handleAddClick}
+        >
           <Plus size={18} /> Add Book
         </button>
       </div>
@@ -166,7 +169,7 @@ export default function LibrarianBooksPage() {
         <p className="text-center text-error py-20">{error}</p>
       ) : books.length === 0 ? (
         <p className="text-center text-base-content/50 py-10">
-          Koi book nahi mili.
+          No books found.
         </p>
       ) : (
         <>

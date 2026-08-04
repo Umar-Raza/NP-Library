@@ -21,7 +21,7 @@ export default function BookRow({
   // Left slot: reader → button (actions); librarian → status badge
   const leftStatus = showAvailableStatus ? (
     book.status === "borrowed" ? (
-      <span className="badge badge-warning font-medium truncate max-w-full">
+      <span className="badge badge-warning font-medium truncate max-w-full py-1 px-2">
         {book.borrowedBy}
       </span>
     ) : (
@@ -50,7 +50,7 @@ export default function BookRow({
           href={book.bookLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn btn-ghost btn-xs sm:btn-sm border border-base-300 hover:border-primary hover:text-primary transition-colors"
+          className="btn btn-ghost btn-xs sm:btn-sm border border-base-300 hover:border-primary transition-colors"
           title="Download Book"
         >
           <Download size={14} />

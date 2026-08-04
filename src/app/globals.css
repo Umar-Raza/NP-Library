@@ -22,6 +22,7 @@
   --color-success: #6fc9a8;
   --color-warning: #f5c662;
   --color-error: #e88585;
+  --color-danger: #e85858;
   --radius-box: 0.75rem;
   --radius-field: 0.5rem;
   --radius-selector: 0.5rem;
@@ -44,4 +45,8 @@
 
 .toast-item {
   animation: toast-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-primary {
+  border-color: transparent;
 }
