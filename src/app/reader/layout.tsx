@@ -19,11 +19,7 @@ export default function ReaderLayout({
         onMobileClose={() => setMobileOpen(false)}
       />
       <div className="flex flex-col min-h-screen lg:ml-64">
-        <Topbar
-          userName="Reader"
-          role="reader"
-          onMenuClick={() => setMobileOpen(true)}
-        />
+        <Topbar role="reader" onMenuClick={() => setMobileOpen(true)} />
         <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
