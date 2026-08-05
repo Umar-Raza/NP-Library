@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
       setSent(true);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Email bhejne mein masla hua.",
+        err instanceof Error ? err.message : "Problem sending reset email.",
       );
     } finally {
       setLoading(false);
@@ -33,14 +33,14 @@ export default function ForgotPasswordPage() {
         <div className="card-body items-center text-center">
           <BookOpen className="text-primary" size={32} />
           <h1 className="font-display text-2xl font-semibold mt-2">
-            Email bhej diya!
+            Password Reset Link Sent!
           </h1>
           <p className="text-base-content/60 text-sm mt-2">
-            Agar ye email registered hai, to aapko password reset ka link mil
-            jayega. Apna inbox (aur spam folder) check karein.
+            If this email is registered, you will receive a password reset link.
+            Check your inbox (and spam folder).
           </p>
           <Link href="/login" className="btn btn-primary mt-4 w-full">
-            Login par wapas
+            Back to Login
           </Link>
         </div>
       </div>
@@ -53,10 +53,10 @@ export default function ForgotPasswordPage() {
         <div className="flex flex-col items-center gap-2 mb-4">
           <BookOpen className="text-primary" size={32} />
           <h1 className="font-display text-2xl font-semibold">
-            Password Reset
+            Reset your password
           </h1>
           <p className="text-base-content/60 text-sm text-center">
-            Apna email daalein, hum reset link bhej denge.
+            Enter your email, we&apos;ll send a reset link.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
             {loading ? (
               <span className="loading loading-spinner loading-sm"></span>
             ) : (
-              "Reset Link Bhejein"
+              "Send Reset Link"
             )}
           </button>
         </form>
@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
           href="/login"
           className="flex items-center justify-center gap-1 text-sm text-base-content/60 mt-4 hover:text-primary"
         >
-          <ArrowLeft size={14} /> Login par wapas
+          <ArrowLeft size={14} /> Back to Login
         </Link>
       </div>
     </div>

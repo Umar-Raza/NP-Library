@@ -53,7 +53,7 @@ export default function LibrarianIssuedBooksPage() {
         <input
           type="text"
           className="flex-1 min-w-0 bg-transparent outline-none text-sm"
-          placeholder="Book ya borrower ka naam search karein..."
+          placeholder="Search by book title or borrower name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -69,7 +69,7 @@ export default function LibrarianIssuedBooksPage() {
         <p className="text-center text-error py-20">{error}</p>
       ) : books.length === 0 ? (
         <p className="text-center text-base-content/50 py-10">
-          Filhal koi book issue nahi hai.
+          No books are currently issued.
         </p>
       ) : (
         <div className="flex flex-col gap-3">

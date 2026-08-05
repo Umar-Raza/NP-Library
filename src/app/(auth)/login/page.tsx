@@ -18,10 +18,10 @@ export default function LoginPage() {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!email.trim()) e.email = "Email zaroori hai.";
+    if (!email.trim()) e.email = "Email is required.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      e.email = "Sahi email daalein.";
-    if (!password) e.password = "Password zaroori hai.";
+      e.email = "Please enter a valid email.";
+    if (!password) e.password = "Password is required.";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -37,7 +37,7 @@ export default function LoginPage() {
       const profile = await getMyProfile();
 
       if (!profile) {
-        setApiError("Profile load nahi ho saka. Dobara koshish karein.");
+        setApiError("Failed to load profile. Please try again.");
         setLoading(false);
         return;
       }
@@ -52,7 +52,7 @@ export default function LoginPage() {
         );
       }
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : "Login fail ho gaya.");
+      setApiError(err instanceof Error ? err.message : "Login failed.");
       setLoading(false);
     }
   };
@@ -64,7 +64,7 @@ export default function LoginPage() {
           <BookOpen className="text-primary" size={32} />
           <h1 className="font-display text-2xl font-semibold">NP Library</h1>
           <p className="text-base-content/60 text-sm">
-            Login apne account mein
+            Welcome back! Sign in to your account.
           </p>
         </div>
 
@@ -117,9 +117,9 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-base-content/60 mt-4">
-          Account nahi hai?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-primary font-medium">
-            Signup karein
+            Sign up
           </Link>
         </p>
       </div>

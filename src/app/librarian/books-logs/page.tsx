@@ -38,7 +38,7 @@ export default function BooksLogsPage() {
         <input
           type="text"
           className="flex-1 min-w-0 bg-transparent outline-none text-sm"
-          placeholder="Book ka naam search karein..."
+          placeholder="Search book name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />

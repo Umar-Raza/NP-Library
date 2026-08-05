@@ -119,7 +119,7 @@ export default function RequestsPage() {
       <h1 className="text-2xl font-display font-semibold mb-6">Requests</h1>
 
       {/* Tabs */}
-      <div className="grid grid-cols-2 gap-2 p-1 bg-base-200 rounded-xl w-full max-w-xs mb-6">
+      <div className="grid grid-cols-2 gap-2 p-1 bg-base-100 rounded-xl w-full max-w-xs mb-6 ">
         <button
           className={`py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer ${
             tab === "requests"
@@ -230,68 +230,98 @@ export default function RequestsPage() {
             <input
               type="text"
               className="flex-1 min-w-0 bg-transparent outline-none text-sm"
-              placeholder="Reader ka naam ya email search karein..."
+              placeholder="Search reader's name or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          {filteredApproved.map((r) => (
-            <div
-              key={r.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2 bg-base-100 border border-base-300 rounded-box px-4 py-3.5"
-            >
-              <div className="min-w-0">
-                <p className="font-semibold truncate">{r.fullName}</p>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-base-content/50">
-                  <a
-                    href={`mailto:${r.email}`}
-                    className="flex items-center gap-1 hover:text-primary transition-colors"
-                  >
-                    <Mail size={12} /> {r.email}
-                  </a>
-                  {r.whatsapp && (
+          {filteredApproved.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-base-content/40">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mb-3 opacity-50"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <p className="text-sm font-medium">
+                {search
+                  ? "No readers match your search"
+                  : "No approved readers yet"}
+              </p>
+              {search && (
+                <p className="text-xs mt-1">Try a different name or email</p>
+              )}
+            </div>
+          ) : (
+            filteredApproved.map((r) => (
+              <div
+                key={r.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2 bg-base-100 border border-base-300 rounded-box px-4 py-3.5"
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold truncate">{r.fullName}</p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-base-content/50">
                     <a
-                      href={`https://wa.me/${r.whatsapp.replace(/[^0-9]/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`mailto:${r.email}`}
                       className="flex items-center gap-1 hover:text-primary transition-colors"
                     >
-                      <Phone size={12} /> {r.whatsapp}
+                      <Mail size={12} /> {r.email}
                     </a>
-                  )}
+                    {r.whatsapp && (
+                      <a
+                        href={`https://wa.me/${r.whatsapp.replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 hover:text-primary transition-colors"
+                      >
+                        <Phone size={12} /> {r.whatsapp}
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right hidden sm:block">
+                    <span className="badge badge-success badge-outline badge-sm">
+                      Approved
+                    </span>
+                    <p className="text-xs text-base-content/40 mt-1">
+                      {new Date(r.createdAt).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <button
+                    className="btn btn-ghost btn-sm gap-1 border border-error/30 text-error hover:bg-error/10"
+                    onClick={() => handleRevoke(r.id)}
+                    disabled={actionId === r.id}
+                  >
+                    {actionId === r.id ? (
+                      <span className="loading loading-spinner loading-xs"></span>
+                    ) : (
+                      <>
+                        <Ban size={14} />{" "}
+                        <span className="hidden sm:inline">Revoke</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="text-right hidden sm:block">
-                  <span className="badge badge-success badge-outline badge-sm">
-                    Approved
-                  </span>
-                  <p className="text-xs text-base-content/40 mt-1">
-                    {new Date(r.createdAt).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-                <button
-                  className="btn btn-ghost btn-sm gap-1 border border-error/30 text-error hover:bg-error/10"
-                  onClick={() => handleRevoke(r.id)}
-                  disabled={actionId === r.id}
-                >
-                  {actionId === r.id ? (
-                    <span className="loading loading-spinner loading-xs"></span>
-                  ) : (
-                    <>
-                      <Ban size={14} />{" "}
-                      <span className="hidden sm:inline">Revoke</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
     </div>

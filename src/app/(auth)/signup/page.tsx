@@ -67,11 +67,11 @@ export default function SignupPage() {
         <div className="card-body items-center text-center">
           <BookOpen className="text-primary" size={32} />
           <h1 className="font-display text-2xl font-semibold mt-2">
-            Account ban gaya!
+            Account created successfully!
           </h1>
           <p className="text-base-content/60 text-sm mt-2">
-            Aapka account create ho gaya hai. Librarian approve karega, uske
-            baad books access kar sakenge.
+            Your account has been created successfully. The librarian will
+            approve it, and then you can access the books.
           </p>
           <Link href="/login" className="btn btn-primary mt-4 w-full">
             Login
@@ -118,7 +118,7 @@ export default function SignupPage() {
             label="WhatsApp"
             type="tel"
             required
-            placeholder="+923xxxxxxxxx"
+            placeholder="+923123456789"
             value={whatsapp}
             onChange={setWhatsapp}
             error={errors.whatsapp}
@@ -156,9 +156,9 @@ export default function SignupPage() {
         </form>
 
         <p className="text-center text-sm text-base-content/60 mt-4">
-          Pehle se account hai?{" "}
+          Already have an account?{" "}
           <Link href="/login" className="text-primary font-medium">
-            Login karein
+            Log in
           </Link>
         </p>
       </div>

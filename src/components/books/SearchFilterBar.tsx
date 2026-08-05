@@ -32,7 +32,7 @@ export default function SearchFilterBar({
         <input
           type="text"
           className="flex-1 min-w-0 bg-transparent outline-none text-sm"
-          placeholder="Book, author, ya library code se search karein..."
+          placeholder="Search by book title, author, or library code..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />

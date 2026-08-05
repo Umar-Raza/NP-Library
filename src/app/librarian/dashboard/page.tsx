@@ -71,7 +71,7 @@ export default function LibrarianDashboardPage() {
   };
 
   const handleReject = async (id: string) => {
-    if (!confirm("Reject karein?")) return;
+    if (!confirm("Reject this request?")) return;
     setActionId(id);
     try {
       await rejectReader(id);
@@ -126,7 +126,7 @@ export default function LibrarianDashboardPage() {
       <h1 className="text-2xl font-display font-semibold mb-1">
         Librarian Dashboard
       </h1>
-      <p className="text-base-content/60 mb-6">NP Library ka overview.</p>
+      <p className="text-base-content/60 mb-6">Library overview.</p>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -177,7 +177,7 @@ export default function LibrarianDashboardPage() {
                 </div>
               ) : recent.length === 0 ? (
                 <p className="text-sm text-base-content/50 py-4 text-center">
-                  Filhal koi book borrowed nahi hai.
+                  No books are currently issued.
                 </p>
               ) : (
                 <div className="flex flex-col gap-3">
@@ -244,7 +244,7 @@ export default function LibrarianDashboardPage() {
                 </div>
               ) : pending.length === 0 ? (
                 <p className="text-sm text-base-content/50 py-4 text-center">
-                  Koi pending request nahi hai.
+                  No pending requests.
                 </p>
               ) : (
                 <div className="flex flex-col gap-3">
