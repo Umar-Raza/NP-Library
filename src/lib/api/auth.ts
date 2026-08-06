@@ -82,7 +82,7 @@ export async function updateMyProfile(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Login nahi hai.");
+  if (!user) throw new Error("User Not Logged In!");
 
   const updateData: { full_name: string; avatar_url?: string } = {
     full_name: fullName,
@@ -96,6 +96,6 @@ export async function updateMyProfile(
 
   if (error) {
     console.error("updateMyProfile error:", error.message);
-    throw new Error("Profile update nahi ho saka.");
+    throw new Error("Profile Update Failed!");
   }
 }

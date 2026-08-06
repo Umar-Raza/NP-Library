@@ -1,0 +1,23 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # roz subah 6 baje UTC (Pakistan mein 11 baje)
+  workflow_dispatch: # manually bhi chala sakte hain (testing ke liye)
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/books?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Response code: $response"
+          if [ "$response" != "200" ]; then
+            echo "Ping failed with status $response"
+            exit 1
+          fi
+          echo "Supabase is alive!"
