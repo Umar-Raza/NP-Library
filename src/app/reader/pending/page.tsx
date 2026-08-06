@@ -14,15 +14,15 @@ export default function PendingApprovalPage() {
           </div>
 
           <h2 className="text-lg font-semibold mt-4">
-            Aapki request pending hai
+            Your request is pending
           </h2>
           <p className="text-sm text-base-content/60 mt-2">
-            Aapka registration librarian ke paas review ke liye bheja gaya hai.
-            Approve hote hi aapko books list tak access mil jayega.
+            Your registration has been sent to the librarian for review. Once
+            approved, you will get access to the books list.
           </p>
           <div className="alert alert-info text-sm mt-6 text-left">
-            Ye process aam taur par jaldi ho jata hai. Iske baad aap login kar
-            ke seedha books dekh sakenge.
+            This process is usually quick. After approval, you will be able to
+            login and view the books list.
           </div>
         </div>
       </div>

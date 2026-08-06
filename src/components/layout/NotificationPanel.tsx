@@ -25,12 +25,12 @@ const iconMap: Record<string, React.ReactNode> = {
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Abhi";
-  if (mins < 60) return `${mins}m pehle`;
+  if (mins < 1) return "Just Now";
+  if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h pehle`;
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  return `${days}d pehle`;
+  return `${days}d ago`;
 }
 
 export default function NotificationPanel() {
@@ -91,7 +91,7 @@ export default function NotificationPanel() {
           </div>
         ) : items.length === 0 ? (
           <p className="text-center text-sm text-base-content/50 py-8">
-            Koi notification nahi hai.
+            No notifications available.
           </p>
         ) : (
           <ul>

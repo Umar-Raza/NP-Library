@@ -44,7 +44,7 @@ export default function AssignModal({
     if (mode === "registered") {
       const reader = readers.find((r) => r.id === selectedReaderId);
       if (!reader) {
-        setError("Please select a reader.");
+        setError("Please select a valid reader.");
         return;
       }
       name = reader.fullName;
@@ -63,7 +63,9 @@ export default function AssignModal({
       await onAssign(name, id);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Assign fail ho gaya.");
+      setError(
+        err instanceof Error ? err.message : "Failed to assign the book.",
+      );
     } finally {
       setSaving(false);
     }
@@ -91,7 +93,7 @@ export default function AssignModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <p className="text-sm text-base-content/60">
             <span className="font-medium text-base-content">{bookName}</span>{" "}
-            kisko de rahe hain?
+            Who are you assigning this book to?
           </p>
 
           {error && (
@@ -102,7 +104,7 @@ export default function AssignModal({
           <div className="grid grid-cols-2 gap-2 p-1 bg-base-200 rounded-xl">
             <button
               type="button"
-              className={`py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`py-2 rounded-lg text-sm cursor-pointer font-medium transition-colors ${
                 mode === "registered"
                   ? "bg-primary text-primary-content shadow-sm"
                   : "text-base-content/60 hover:text-base-content"
@@ -113,14 +115,14 @@ export default function AssignModal({
             </button>
             <button
               type="button"
-              className={`py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`py-2 rounded-lg text-sm cursor-pointer font-medium transition-colors ${
                 mode === "guest"
                   ? "bg-primary text-primary-content shadow-sm"
                   : "text-base-content/60 hover:text-base-content"
               }`}
               onClick={() => setMode("guest")}
             >
-              Naya Naam
+              New Name
             </button>
           </div>
 
@@ -130,7 +132,7 @@ export default function AssignModal({
                 <span className="label-text">Please select a reader.</span>
               </label>
               <select
-                className="select w-full border-2 border-base-300 rounded-lg focus:border-primary outline-none"
+                className="select w-full cursor-pointer border-2 border-base-300 rounded-lg focus:border-primary outline-none"
                 value={selectedReaderId}
                 onChange={(e) => setSelectedReaderId(e.target.value)}
               >
