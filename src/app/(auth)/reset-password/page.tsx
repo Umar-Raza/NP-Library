@@ -19,11 +19,11 @@ export default function ResetPasswordPage() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Password match nahi karte.");
+      setError("Password Don't Match!");
       return;
     }
     if (password.length < 6) {
-      setError("Password kam se kam 6 characters ka hona chahiye.");
+      setError("Password Must Be Atleast 6 Characters Long!");
       return;
     }
 
@@ -35,9 +35,7 @@ export default function ResetPasswordPage() {
       setDone(true);
       setTimeout(() => router.push("/login"), 2000);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Password update fail ho gaya.",
-      );
+      setError(err instanceof Error ? err.message : "Password Update Failed!");
     } finally {
       setLoading(false);
     }
@@ -49,11 +47,9 @@ export default function ResetPasswordPage() {
         <div className="card-body items-center text-center">
           <BookOpen className="text-primary" size={32} />
           <h1 className="font-display text-2xl font-semibold mt-2">
-            Password badal gaya!
+            Password Updated Successfully!
           </h1>
-          <p className="text-base-content/60 text-sm mt-2">
-            Ab aap naye password se login kar sakte hain.
-          </p>
+          <p className="text-base-content/60 text-sm mt-2">Login Now</p>
         </div>
       </div>
     );
@@ -64,7 +60,7 @@ export default function ResetPasswordPage() {
       <div className="card-body">
         <div className="flex flex-col items-center gap-2 mb-4">
           <BookOpen className="text-primary" size={32} />
-          <h1 className="font-display text-2xl font-semibold">Naya Password</h1>
+          <h1 className="font-display text-2xl font-semibold">New Password</h1>
         </div>
 
         {error && (
@@ -74,7 +70,7 @@ export default function ResetPasswordPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Naya Password</span>
+              <span className="label-text">New Password</span>
             </label>
             <input
               type="password"
@@ -108,7 +104,7 @@ export default function ResetPasswordPage() {
             {loading ? (
               <span className="loading loading-spinner loading-sm"></span>
             ) : (
-              "Password Update Karein"
+              "Submit"
             )}
           </button>
         </form>
