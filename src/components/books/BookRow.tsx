@@ -9,6 +9,7 @@ export default function BookRow({
   showDownload = true,
   showAvailableStatus = false,
   onToggleFavorite,
+  actionsLoading = false,
 }: {
   book: Book;
   index: number;
@@ -17,6 +18,7 @@ export default function BookRow({
   showDownload?: boolean;
   showAvailableStatus?: boolean;
   onToggleFavorite?: (id: string) => void;
+  actionsLoading?: boolean;
 }) {
   const leftStatus = showAvailableStatus ? (
     book.status === "borrowed" ? (

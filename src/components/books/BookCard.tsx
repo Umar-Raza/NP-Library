@@ -17,6 +17,7 @@ export default function BookCard({
   showDownload?: boolean;
   showAvailableStatus?: boolean;
   onToggleFavorite?: (id: string) => void;
+  actionsLoading?: boolean;
 }) {
   return (
     <div className="card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-shadow">
