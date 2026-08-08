@@ -9,7 +9,6 @@ export default function BookRow({
   showDownload = true,
   showAvailableStatus = false,
   onToggleFavorite,
-  actionsLoading = false,
 }: {
   book: Book;
   index: number;
