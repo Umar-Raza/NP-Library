@@ -9,9 +9,12 @@ import { Book } from "@/lib/types";
 export default function ReaderIssuedBooksPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
 
   // debounce search
   useEffect(() => {
@@ -19,17 +22,42 @@ export default function ReaderIssuedBooksPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const load = useCallback(() => {
+  const loadInitial = useCallback(() => {
     setLoading(true);
-    getIssuedBooks(debounced)
-      .then(setBooks)
+    setError("");
+    setPage(0);
+    getIssuedBooks({ page: 0, pageSize: 10, search: debounced })
+      .then((res) => {
+        setBooks(res.books);
+        setHasMore(res.hasMore);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [debounced]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    loadInitial();
+  }, [loadInitial]);
+
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    try {
+      const res = await getIssuedBooks({
+        page: nextPage,
+        pageSize: 10,
+        search: debounced,
+      });
+      setBooks((prev) => [...prev, ...res.books]);
+      setPage(nextPage);
+      setHasMore(res.hasMore);
+    } catch (e) {
+      // Keep existing books
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   return (
     <div>
@@ -59,11 +87,32 @@ export default function ReaderIssuedBooksPage() {
           Filhal koi book issue nahi hai.
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
-          {books.map((book, i) => (
-            <IssuedBookRow key={book.id} book={book} index={i + 1} />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-3">
+            {books.map((book, i) => (
+              <IssuedBookRow key={book.id} book={book} index={i + 1} />
+            ))}
+          </div>
+
+          {hasMore && (
+            <div className="flex justify-center mt-6">
+              <button
+                className="btn btn-sm btn-primary gap-2"
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? (
+                  <>
+                    <span className="loading loading-spinner loading-xs"></span>
+                    Loading...
+                  </>
+                ) : (
+                  "Load More"
+                )}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -207,13 +207,30 @@ export async function returnBook(bookId: string): Promise<void> {
   }
 }
 
-// ---- ISSUED BOOKS (saari borrowed books) ----
-export async function getIssuedBooks(search = ""): Promise<Book[]> {
+// ---- ISSUED BOOKS (saari borrowed books with pagination) ----
+export interface GetIssuedBooksParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}
+
+export interface GetIssuedBooksResult {
+  books: Book[];
+  hasMore: boolean;
+}
+
+export async function getIssuedBooks(
+  params: GetIssuedBooksParams = {},
+): Promise<GetIssuedBooksResult> {
   const supabase = createClient();
+  const { page = 0, pageSize = 10, search = "" } = params;
+
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
 
   let query = supabase
     .from("books")
-    .select("*, borrow_records(borrower_id, borrowed_at)")
+    .select("*, borrow_records(borrower_id, borrowed_at)", { count: "exact" })
     .eq("status", "borrowed")
     .order("borrowed_at", { ascending: false, foreignTable: "borrow_records" });
 
@@ -222,14 +239,16 @@ export async function getIssuedBooks(search = ""): Promise<Book[]> {
     query = query.or(`book_name.ilike.%${s}%,borrowed_by.ilike.%${s}%`);
   }
 
-  const { data, error } = await query.order("book_name", { ascending: true });
+  query = query.order("book_name", { ascending: true }).range(from, to);
+
+  const { data, error, count } = await query;
 
   if (error) {
     console.error("getIssuedBooks error:", error.message);
     throw new Error("Issued books load nahi ho saki.");
   }
 
-  return (data as any[]).map((row) => ({
+  const books = (data as any[]).map((row) => ({
     id: row.id,
     titlePage: row.title_page ?? "",
     bookName: row.book_name,
@@ -244,6 +263,10 @@ export async function getIssuedBooks(search = ""): Promise<Book[]> {
     borrowedAt: row.borrow_records?.[0]?.borrowed_at ?? undefined,
     addedAt: row.created_at,
   }));
+
+  const hasMore = count !== null ? to + 1 < count : books.length === pageSize;
+
+  return { books, hasMore };
 }
 
 // ---- BOOKS LOG (borrow chain per book) ----
