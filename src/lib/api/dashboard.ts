@@ -74,3 +74,20 @@ export async function getRecentlyBorrowed(limit = 5): Promise<Book[]> {
     addedAt: row.created_at,
   }));
 }
+
+// Reader sidebar counts — sirf totalBooks
+export interface ReaderCounts {
+  totalBooks: number;
+}
+
+export async function getReaderCounts(): Promise<ReaderCounts> {
+  const supabase = createClient();
+
+  const totalRes = await supabase
+    .from("books")
+    .select("*", { count: "exact", head: true });
+
+  return {
+    totalBooks: totalRes.count ?? 0,
+  };
+}

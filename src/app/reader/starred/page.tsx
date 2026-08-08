@@ -7,27 +7,32 @@ import BooksSkeleton from "@/components/books/BooksSkeleton";
 import { getMyFavoriteBooks, toggleFavorite } from "@/lib/api/favorites";
 import { borrowBook } from "@/lib/api/books";
 import { getMyProfile } from "@/lib/api/auth";
-import { Book } from "@/lib/types";
 import { useToast } from "@/components/ui/ToastProvider";
+import { Book } from "@/lib/types";
 
 export default function StarredPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [borrowingId, setBorrowingId] = useState<string | null>(null);
-  const toast = useToast();
   const [currentUser, setCurrentUser] = useState<{
     id: string;
     fullName: string;
   } | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
-    getMyFavoriteBooks()
-      .then(setBooks)
+    // Dono parallel fetch karein
+    Promise.all([getMyFavoriteBooks(), getMyProfile()])
+      .then(([favBooks, profile]) => {
+        setBooks(favBooks);
+        if (profile)
+          setCurrentUser({ id: profile.id, fullName: profile.full_name });
+      })
       .finally(() => setLoading(false));
-    getMyProfile().then((p) => {
-      if (p) setCurrentUser({ id: p.id, fullName: p.full_name });
-    });
   }, []);
+
+  // Sirf page load wait — ek hi skeleton
+  const actionsLoading = !currentUser;
 
   const handleToggleFavorite = async (id: string) => {
     setBooks((prev) => prev.filter((b) => b.id !== id));
@@ -55,9 +60,8 @@ export default function StarredPage() {
             : b,
         ),
       );
-      toast("Book borrowed successfully.", "success");
     } catch (e) {
-      toast(e instanceof Error ? e.message : "Failed to borrow.", "error");
+      toast(e instanceof Error ? e.message : "Borrow failed.", "error");
     } finally {
       setBorrowingId(null);
     }
@@ -70,7 +74,7 @@ export default function StarredPage() {
     if (isCurrentHolder) {
       return (
         <button className="btn btn-sm btn-disabled" disabled>
-          Aap ke paas
+          You Have It
         </button>
       );
     }
@@ -103,7 +107,7 @@ export default function StarredPage() {
         <BooksSkeleton view="grid" count={6} />
       ) : books.length === 0 ? (
         <p className="text-center text-base-content/50 py-10">
-          Abhi tak koi book star nahi ki. Books page se star icon dabayen.
+          No starred books yet. Press the star icon on any book to save it here.
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -114,6 +118,7 @@ export default function StarredPage() {
               index={i + 1}
               showDownload={true}
               onToggleFavorite={handleToggleFavorite}
+              actionsLoading={actionsLoading}
               actions={renderBorrowAction(book)}
             />
           ))}

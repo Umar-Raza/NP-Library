@@ -9,8 +9,8 @@ import { useInfiniteBooks } from "@/hooks/useInfiniteBooks";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { borrowBook } from "@/lib/api/books";
 import { getMyFavoriteIds, toggleFavorite } from "@/lib/api/favorites";
-import { Book, ViewMode } from "@/lib/types";
 import { useToast } from "@/components/ui/ToastProvider";
+import { Book, ViewMode } from "@/lib/types";
 
 export default function ReaderDashboardPage() {
   const {
@@ -30,11 +30,13 @@ export default function ReaderDashboardPage() {
     currentUser,
   } = useInfiniteBooks();
 
+  const toast = useToast();
   const [view, setView] = useState<ViewMode>("grid");
   const [borrowingId, setBorrowingId] = useState<string | null>(null);
   const [favIds, setFavIds] = useState<Set<string>>(new Set());
+  const [favLoading, setFavLoading] = useState(true);
+
   const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loading);
-  const toast = useToast();
 
   const subjects = useMemo(
     () => [...new Set(books.map((b) => b.subject))],
@@ -42,19 +44,22 @@ export default function ReaderDashboardPage() {
   );
 
   useEffect(() => {
-    getMyFavoriteIds().then(setFavIds);
+    getMyFavoriteIds()
+      .then(setFavIds)
+      .finally(() => setFavLoading(false));
   }, []);
+
+  // Sirf books loading ka wait — ek hi skeleton
+  const allReady = !loading && !favLoading;
+  // Actions alag track — button/star skeleton ke liye
+  const actionsLoading = false;
 
   const handleToggleFavorite = async (id: string) => {
     const isFav = favIds.has(id);
-
-    // Add se pehle limit check (UI level)
     if (!isFav && favIds.size >= 25) {
-      toast("You can only favorite 25 books at a time.", "warning");
+      toast("You can favorite a maximum of 25 books.", "warning");
       return;
     }
-
-    // Optimistic update
     setFavIds((prev) => {
       const next = new Set(prev);
       isFav ? next.delete(id) : next.add(id);
@@ -63,13 +68,12 @@ export default function ReaderDashboardPage() {
     try {
       await toggleFavorite(id, isFav);
     } catch (e) {
-      // Fail par revert
       setFavIds((prev) => {
         const next = new Set(prev);
         isFav ? next.add(id) : next.delete(id);
         return next;
       });
-      toast(e instanceof Error ? e.message : "Fail.", "error");
+      toast(e instanceof Error ? e.message : "Failed.", "error");
     }
   };
 
@@ -84,9 +88,8 @@ export default function ReaderDashboardPage() {
         borrowedBy: currentUser.fullName,
         borrowedById: currentUser.id,
       });
-      toast("Book borrowed successfully.", "success");
     } catch (e) {
-      toast(e instanceof Error ? e.message : "Borrow fail ho gaya.", "error");
+      toast(e instanceof Error ? e.message : "Borrow failed.", "error");
     } finally {
       setBorrowingId(null);
     }
@@ -99,7 +102,7 @@ export default function ReaderDashboardPage() {
     if (isCurrentHolder) {
       return (
         <button className="btn btn-sm btn-disabled" disabled>
-          Aap ke paas
+          You Have It
         </button>
       );
     }
@@ -137,13 +140,13 @@ export default function ReaderDashboardPage() {
         onViewChange={setView}
       />
 
-      {loading ? (
+      {!allReady ? (
         <BooksSkeleton view={view} count={6} />
       ) : error ? (
         <p className="text-center text-error py-20">{error}</p>
       ) : books.length === 0 ? (
         <p className="text-center text-base-content/50 py-10">
-          Koi book nahi mili.
+          No books found.
         </p>
       ) : (
         <>
@@ -152,10 +155,14 @@ export default function ReaderDashboardPage() {
               {books.map((book, i) => (
                 <BookCard
                   key={book.id}
-                  book={{ ...book, isFavorite: favIds.has(book.id) }}
+                  book={{
+                    ...book,
+                    isFavorite: favLoading ? undefined : favIds.has(book.id),
+                  }}
                   index={i + 1}
                   showDownload={true}
                   onToggleFavorite={handleToggleFavorite}
+                  actionsLoading={actionsLoading}
                   actions={renderBorrowAction(book)}
                 />
               ))}
@@ -165,23 +172,26 @@ export default function ReaderDashboardPage() {
               {books.map((book, i) => (
                 <BookRow
                   key={book.id}
-                  book={{ ...book, isFavorite: favIds.has(book.id) }}
+                  book={{
+                    ...book,
+                    isFavorite: favLoading ? undefined : favIds.has(book.id),
+                  }}
                   index={i + 1}
                   showDownload={true}
                   onToggleFavorite={handleToggleFavorite}
+                  actionsLoading={actionsLoading}
                   actions={renderBorrowAction(book)}
                 />
               ))}
             </div>
           )}
-
-          {hasMore && (
-            <div ref={sentinelRef} className="pt-4">
-              {loadingMore && <BooksSkeleton view={view} count={3} />}
-            </div>
-          )}
         </>
       )}
+
+      {/* Sentinel — hamesha DOM mein */}
+      <div ref={sentinelRef} className="pt-4">
+        {loadingMore && <BooksSkeleton view={view} count={3} />}
+      </div>
     </div>
   );
 }

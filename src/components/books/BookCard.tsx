@@ -12,8 +12,8 @@ export default function BookCard({
 }: {
   book: Book;
   index: number;
-  actions?: React.ReactNode; // left (Borrow — reader)
-  adminActions?: React.ReactNode; // right (Assign/Return + kebab — librarian)
+  actions?: React.ReactNode;
+  adminActions?: React.ReactNode;
   showDownload?: boolean;
   showAvailableStatus?: boolean;
   onToggleFavorite?: (id: string) => void;
@@ -34,7 +34,7 @@ export default function BookCard({
             {book.bookName}
           </h2>
 
-          {/* Metadata Stack */}
+          {/* Metadata */}
           <div className="space-y-2 text-xs sm:text-sm">
             <div>
               <span className="text-base-content/40 text-[11px] font-semibold uppercase tracking-wider block">
@@ -72,11 +72,11 @@ export default function BookCard({
 
           {/* Bottom actions row */}
           <div className="flex flex-wrap items-center justify-between gap-2 mt-auto pt-3">
-            {/* Left: reader → actions (button); librarian → status badge */}
+            {/* Left: reader → actions; librarian → status badge */}
             <div className="min-w-0 shrink-0">
               {showAvailableStatus ? (
                 book.status === "borrowed" ? (
-                  <span className="badge badge-warning font-medium truncate max-w-full py-1 px-2 ">
+                  <span className="badge badge-warning font-medium truncate max-w-full">
                     {book.borrowedBy}
                   </span>
                 ) : (
@@ -94,7 +94,9 @@ export default function BookCard({
               {onToggleFavorite && (
                 <button
                   onClick={() => onToggleFavorite(book.id)}
-                  className={`btn btn-ghost btn-sm border border-base-300 ${book.isFavorite ? "text-warning" : "text-base-content/40"}`}
+                  className={`btn btn-ghost btn-sm border border-base-300 ${
+                    book.isFavorite ? "text-warning" : "text-base-content/40"
+                  }`}
                   title={
                     book.isFavorite ? "Remove from Starred" : "Add to Starred"
                   }
@@ -122,7 +124,7 @@ export default function BookCard({
           </div>
         </div>
 
-        {/* Right: full-height thumbnail */}
+        {/* Right: thumbnail */}
         <div className="w-32 sm:w-34 shrink-0 bg-base-200 border border-base-300 rounded-lg flex items-center justify-center overflow-hidden self-stretch relative shadow-sm">
           {book.titlePage ? (
             <img

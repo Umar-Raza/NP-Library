@@ -1,6 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { signOut } from "@/lib/api/auth";
+import { getReaderCounts, ReaderCounts } from "@/lib/api/dashboard";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -26,9 +28,19 @@ const librarianLinks = [
 ];
 
 const readerLinks = [
-  { href: "/reader/dashboard", label: "Books", icon: BookOpen },
-  { href: "/reader/issued-books", label: "Issued Books", icon: ClipboardList },
-  { href: "/reader/starred", label: "Starred", icon: Star },
+  {
+    href: "/reader/dashboard",
+    label: "Books",
+    icon: BookOpen,
+    showCount: true,
+  },
+  {
+    href: "/reader/issued-books",
+    label: "Issued Books",
+    icon: ClipboardList,
+    showCount: false,
+  },
+  { href: "/reader/starred", label: "Starred", icon: Star, showCount: false },
 ];
 
 export default function Sidebar({
@@ -41,9 +53,15 @@ export default function Sidebar({
   onMobileClose: () => void;
 }) {
   const pathname = usePathname();
-  const links = role === "librarian" ? librarianLinks : readerLinks;
-
   const router = useRouter();
+
+  const [counts, setCounts] = useState<ReaderCounts>({ totalBooks: 0 });
+
+  useEffect(() => {
+    if (role === "reader") {
+      getReaderCounts().then(setCounts);
+    }
+  }, [role]);
 
   const handleLogout = async () => {
     await signOut();
@@ -61,24 +79,54 @@ export default function Sidebar({
       </div>
 
       <nav className="flex-1 px-3 py-6 space-y-1">
-        {links.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onMobileClose}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-field transition-colors ${
-                active
-                  ? "bg-primary text-primary-content font-medium"
-                  : "hover:bg-white/10 text-neutral-content/80"
-              }`}
-            >
-              <Icon size={18} className="shrink-0" />
-              <span className="whitespace-nowrap">{label}</span>
-            </Link>
-          );
-        })}
+        {role === "librarian"
+          ? librarianLinks.map(({ href, label, icon: Icon }) => {
+              const active = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={onMobileClose}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-field transition-colors ${
+                    active
+                      ? "bg-primary text-primary-content font-medium"
+                      : "hover:bg-white/10 text-neutral-content/80"
+                  }`}
+                >
+                  <Icon size={18} className="shrink-0" />
+                  <span className="whitespace-nowrap">{label}</span>
+                </Link>
+              );
+            })
+          : readerLinks.map(({ href, label, icon: Icon, showCount }) => {
+              const active = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={onMobileClose}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-field transition-colors ${
+                    active
+                      ? "bg-primary text-primary-content font-medium"
+                      : "hover:bg-white/10 text-neutral-content/80"
+                  }`}
+                >
+                  <Icon size={18} className="shrink-0" />
+                  <span className="flex-1 whitespace-nowrap">{label}</span>
+                  {showCount && counts.totalBooks > 0 && (
+                    <span
+                      className={`text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${
+                        active
+                          ? "bg-primary-content/20 text-primary-content"
+                          : "bg-white/15 text-neutral-content"
+                      }`}
+                    >
+                      {counts.totalBooks > 99 ? "99+" : counts.totalBooks}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
       </nav>
 
       <div className="px-3 py-4 border-t border-white/10">
@@ -92,6 +140,7 @@ export default function Sidebar({
       </div>
     </>
   );
+
   return (
     <>
       {/* Mobile overlay */}
@@ -117,7 +166,7 @@ export default function Sidebar({
         {SidebarContent}
       </aside>
 
-      {/* Desktop sidebar — always visible, fixed width, no collapse */}
+      {/* Desktop sidebar */}
       <aside className="hidden lg:flex h-screen w-64 bg-neutral text-neutral-content flex-col fixed left-0 top-0">
         {SidebarContent}
       </aside>

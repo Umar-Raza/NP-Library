@@ -7,23 +7,20 @@ import { Book, SortOption } from "@/lib/types";
 
 export function useInfiniteBooks() {
   const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true); // pehli load (skeleton)
-  const [loadingMore, setLoadingMore] = useState(false); // scroll par agli load
+  const [booksLoading, setBooksLoading] = useState(true);
+  const [userReady, setUserReady] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState("");
-
-  // Current logged-in user (borrow ke liye)
   const [currentUser, setCurrentUser] = useState<{
     id: string;
     fullName: string;
   } | null>(null);
 
-  // Filters
   const [search, setSearch] = useState("");
   const [subject, setSubject] = useState("");
   const [sort, setSort] = useState<SortOption>("newest");
 
-  // Debounced search (400ms baad hi query chalti hai)
   const [debouncedSearch, setDebouncedSearch] = useState("");
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
@@ -32,17 +29,18 @@ export function useInfiniteBooks() {
 
   const pageRef = useRef(0);
 
-  // Current user ek baar fetch
+  // Current user fetch
   useEffect(() => {
     getMyProfile().then((p) => {
       if (p) setCurrentUser({ id: p.id, fullName: p.full_name });
+      setUserReady(true);
     });
   }, []);
 
-  // Jab bhi filter/search/sort badle → list reset, page 0 se dobara
+  // Books fetch
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    setBooksLoading(true);
     setError("");
     pageRef.current = 0;
 
@@ -56,7 +54,7 @@ export function useInfiniteBooks() {
         if (!cancelled) setError(e.message);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setBooksLoading(false);
       });
 
     return () => {
@@ -64,9 +62,9 @@ export function useInfiniteBooks() {
     };
   }, [debouncedSearch, subject, sort]);
 
-  // Scroll par agli 6 load
+  // Scroll par agli 6
   const loadMore = useCallback(async () => {
-    if (loadingMore || loading || !hasMore) return;
+    if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
       const nextPage = pageRef.current + 1;
@@ -80,13 +78,12 @@ export function useInfiniteBooks() {
       setHasMore(res.hasMore);
       pageRef.current = nextPage;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Aur books load nahi ho saki.");
+      setError(e instanceof Error ? e.message : "Could not load more books.");
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, loading, hasMore, debouncedSearch, subject, sort]);
+  }, [loadingMore, hasMore, debouncedSearch, subject, sort]);
 
-  // Local list update helpers (delete/edit/add/borrow ke baad refetch se bachne ke liye)
   const updateLocalBook = useCallback((updated: Book) => {
     setBooks((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
   }, []);
@@ -101,7 +98,8 @@ export function useInfiniteBooks() {
 
   return {
     books,
-    loading,
+    // Dono ready hone tak loading true — ek hi skeleton, koi flash nahi
+    loading: booksLoading || !userReady,
     loadingMore,
     hasMore,
     error,

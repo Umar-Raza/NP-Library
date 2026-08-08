@@ -18,10 +18,9 @@ export default function BookRow({
   showAvailableStatus?: boolean;
   onToggleFavorite?: (id: string) => void;
 }) {
-  // Left slot: reader → button (actions); librarian → status badge
   const leftStatus = showAvailableStatus ? (
     book.status === "borrowed" ? (
-      <span className="badge badge-warning font-medium truncate max-w-full py-1 px-2">
+      <span className="badge badge-warning font-medium truncate max-w-full">
         {book.borrowedBy}
       </span>
     ) : (
@@ -38,7 +37,9 @@ export default function BookRow({
       {onToggleFavorite && (
         <button
           onClick={() => onToggleFavorite(book.id)}
-          className={`btn btn-ghost btn-xs sm:btn-sm border border-base-300 ${book.isFavorite ? "text-warning" : "text-base-content/40"}`}
+          className={`btn btn-ghost btn-xs sm:btn-sm border border-base-300 ${
+            book.isFavorite ? "text-warning" : "text-base-content/40"
+          }`}
           title={book.isFavorite ? "Remove from Starred" : "Add to Starred"}
         >
           <Star size={14} fill={book.isFavorite ? "currentColor" : "none"} />
@@ -50,7 +51,7 @@ export default function BookRow({
           href={book.bookLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn btn-ghost btn-xs sm:btn-sm border border-base-300 hover:border-primary transition-colors"
+          className="btn btn-ghost btn-xs sm:btn-sm border border-base-300 hover:border-primary hover:text-primary transition-colors"
           title="Download Book"
         >
           <Download size={14} />
@@ -74,7 +75,6 @@ export default function BookRow({
         ) : (
           <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 lg:w-6 lg:h-6 text-base-content/30 relative z-10" />
         )}
-
         <span className="lg:hidden absolute top-2 left-2 z-10 bg-base-100/90 backdrop-blur-md text-base-content px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold shadow-sm border border-base-200">
           #{String(index).padStart(2, "0")}
         </span>
@@ -125,7 +125,7 @@ export default function BookRow({
           </div>
         </div>
 
-        {/* Status (left) + Actions (right) */}
+        {/* Status + Actions */}
         <div className="flex flex-row flex-wrap items-center justify-between gap-3 sm:gap-4 lg:w-auto lg:min-w-[240px] shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-base-200 w-full max-w-full">
           <div className="min-w-0">{leftStatus}</div>
           {rightActions}
